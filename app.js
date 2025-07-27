@@ -30,8 +30,8 @@ class HospitalReservationSystem {
 日時: {{date}} {{time}}
 
 ご不明な点がございましたら、お電話でお気軽にお問い合わせください。`,
-                    emailjsServiceId: 'service_sj4j47e',
-                    emailjsTemplateId: 'template_u2cwp0d',
+                    emailjsServiceId: 'sj4j47e',
+                    emailjsTemplateId: 'u2cwp0d',
                     emailjsPublicKey: 'xyuPENz5fwFEEPlrP'
                 },
                 appointmentTypes: [
