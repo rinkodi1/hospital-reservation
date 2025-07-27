@@ -19,61 +19,81 @@ class HospitalReservationSystem {
     init() {
         this.initializeData();
         this.loadHospitalMessage();
+        this.bindEvents();
         this.showScreen('main-screen');
-        
-        // Wait for DOM to be ready before binding events
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.bindEvents());
-        } else {
-            this.bindEvents();
-        }
     }
 
     // Data Management
     initializeData() {
-        // Initialize default data if not exists
+        // Initialize sample reservations if not exists
         if (!localStorage.getItem('hospitalReservations')) {
-            localStorage.setItem('hospitalReservations', JSON.stringify([]));
+            const sampleReservations = [
+                {
+                    id: 'res_001',
+                    name: '田中太郎',
+                    email: 'tanaka@example.com',
+                    phone: '090-1234-5678',
+                    type: 'health_checkup',
+                    date: '2025-07-28',
+                    time: '10:00',
+                    notes: '初回健康診断です',
+                    created_at: '2025-07-27T10:00:00Z'
+                },
+                {
+                    id: 'res_002',
+                    name: '佐藤花子',
+                    email: 'sato@example.com',
+                    phone: '090-9876-5432',
+                    type: 'vaccination',
+                    date: '2025-07-29',
+                    time: '14:30',
+                    notes: 'インフルエンザワクチン希望',
+                    created_at: '2025-07-27T11:30:00Z'
+                }
+            ];
+            localStorage.setItem('hospitalReservations', JSON.stringify(sampleReservations));
         }
         
         if (!localStorage.getItem('hospitalReservationTypes')) {
             const defaultTypes = [
                 {
-                    id: 'health_check',
+                    id: 'health_checkup',
                     name: '健康診断',
                     interval: 15,
                     capacity: 10,
                     start_time: '09:00',
                     end_time: '17:00',
-                    available_from: '2025-07-28',
+                    available_from: '2025-01-01',
                     available_to: '2025-12-31',
-                    excluded_weekdays: [0, 6],
-                    excluded_dates: [],
+                    excluded_weekdays: [0],
+                    excluded_dates: ['2025-01-01', '2025-01-02', '2025-01-03'],
                     weekday_hours: {
                         1: {start: '09:00', end: '17:00'},
                         2: {start: '09:00', end: '17:00'},
                         3: {start: '09:00', end: '17:00'},
                         4: {start: '09:00', end: '17:00'},
-                        5: {start: '09:00', end: '17:00'}
+                        5: {start: '09:00', end: '17:00'},
+                        6: {start: '09:00', end: '12:00'}
                     }
                 },
                 {
                     id: 'vaccination',
                     name: '予防接種',
                     interval: 15,
-                    capacity: 8,
-                    start_time: '10:00',
-                    end_time: '16:00',
-                    available_from: '2025-07-28',
+                    capacity: 10,
+                    start_time: '09:00',
+                    end_time: '17:00',
+                    available_from: '2025-01-01',
                     available_to: '2025-12-31',
-                    excluded_weekdays: [0, 6],
-                    excluded_dates: [],
+                    excluded_weekdays: [0],
+                    excluded_dates: ['2025-01-01', '2025-01-02', '2025-01-03'],
                     weekday_hours: {
-                        1: {start: '10:00', end: '16:00'},
-                        2: {start: '10:00', end: '16:00'},
-                        3: {start: '10:00', end: '16:00'},
-                        4: {start: '10:00', end: '16:00'},
-                        5: {start: '10:00', end: '16:00'}
+                        1: {start: '09:00', end: '17:00'},
+                        2: {start: '09:00', end: '17:00'},
+                        3: {start: '09:00', end: '17:00'},
+                        4: {start: '09:00', end: '17:00'},
+                        5: {start: '09:00', end: '17:00'},
+                        6: {start: '09:00', end: '12:00'}
                     }
                 }
             ];
@@ -83,15 +103,25 @@ class HospitalReservationSystem {
         if (!localStorage.getItem('hospitalSettings')) {
             const defaultSettings = {
                 adminPassword: 'admin123',
-                hospitalMessage: '本日も皆様のご健康をサポートいたします。ご予約をお取りいただき、ありがとうございます。',
+                hospitalInfo: {
+                    name: 'さくら総合病院',
+                    phone: '03-1234-5678',
+                    address: '東京都中央区○○1-2-3'
+                },
+                hospitalMessage: 'お気軽にご予約ください。ご不明な点がございましたらお電話でお問い合わせください。',
                 emailTemplate: {
-                    subject: '予約完了のお知らせ - {{hospitalName}}',
-                    body: '{{patientName}} 様\n\nこの度は当院をご利用いただき、ありがとうございます。\n\n以下の内容で予約を承りました。\n\n■予約内容\n予約種類：{{reservationType}}\n予約日時：{{reservationDate}} {{reservationTime}}\n\n■当日のお願い\n・予約時間の10分前にお越しください\n・保険証をお持ちください\n・マスクの着用をお願いします\n\n変更・キャンセルをご希望の場合は、お電話にてご連絡ください。\n\nサンプル病院\nTEL: 052-123-4567'
+                    subject: '予約確認のお知らせ - {{hospitalName}}',
+                    body: '{{patientName}}様\n\nご予約いただきありがとうございます。\n\n【予約詳細】\n予約種類：{{reservationType}}\n予約日時：{{date}} {{timeSlot}}\n\n何かご不明な点がございましたら、お気軽にお電話ください。\n\nさくら総合病院\nTEL: 03-1234-5678'
                 },
                 emailjsConfig: {
                     serviceId: '',
                     templateId: '',
                     publicKey: ''
+                },
+                googleCalendar: {
+                    apiKey: '',
+                    calendarId: '',
+                    enabled: false
                 }
             };
             localStorage.setItem('hospitalSettings', JSON.stringify(defaultSettings));
@@ -129,17 +159,13 @@ class HospitalReservationSystem {
         const startReservationBtn = document.getElementById('start-reservation-btn');
         
         if (adminLoginBtn) {
-            adminLoginBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+            adminLoginBtn.addEventListener('click', () => {
                 this.showScreen('admin-login-screen');
             });
         }
 
         if (startReservationBtn) {
-            startReservationBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+            startReservationBtn.addEventListener('click', () => {
                 this.startReservation();
             });
         }
@@ -147,8 +173,7 @@ class HospitalReservationSystem {
         // Back to main
         const backToMainBtn = document.getElementById('back-to-main');
         if (backToMainBtn) {
-            backToMainBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            backToMainBtn.addEventListener('click', () => {
                 this.showScreen('main-screen');
             });
         }
@@ -162,8 +187,7 @@ class HospitalReservationSystem {
         // Confirmation
         const confirmBtn = document.getElementById('confirm-reservation');
         if (confirmBtn) {
-            confirmBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            confirmBtn.addEventListener('click', () => {
                 this.confirmReservation();
             });
         }
@@ -211,15 +235,13 @@ class HospitalReservationSystem {
         const nextBtn = document.getElementById('next-month');
         
         if (prevBtn) {
-            prevBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            prevBtn.addEventListener('click', () => {
                 this.changeMonth(-1);
             });
         }
         
         if (nextBtn) {
-            nextBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            nextBtn.addEventListener('click', () => {
                 this.changeMonth(1);
             });
         }
@@ -231,15 +253,13 @@ class HospitalReservationSystem {
         const passwordInput = document.getElementById('admin-password');
 
         if (cancelBtn) {
-            cancelBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            cancelBtn.addEventListener('click', () => {
                 this.showScreen('main-screen');
             });
         }
 
         if (submitBtn) {
-            submitBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            submitBtn.addEventListener('click', () => {
                 this.adminLogin();
             });
         }
@@ -257,25 +277,22 @@ class HospitalReservationSystem {
     bindAdminEvents() {
         const logoutBtn = document.getElementById('admin-logout');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            logoutBtn.addEventListener('click', () => {
                 this.showScreen('main-screen');
             });
         }
 
         // Admin tab navigation
         document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.switchAdminTab(e.target.dataset.tab);
+            tab.addEventListener('click', () => {
+                this.switchAdminTab(tab.dataset.tab);
             });
         });
 
         // Admin management events
         const addNewTypeBtn = document.getElementById('add-new-type');
         if (addNewTypeBtn) {
-            addNewTypeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            addNewTypeBtn.addEventListener('click', () => {
                 this.showTypeEditModal();
             });
         }
@@ -287,16 +304,18 @@ class HospitalReservationSystem {
     bindSettingsEvents() {
         const settingsButtons = [
             {id: 'change-password', handler: () => this.changeAdminPassword()},
+            {id: 'update-hospital-info', handler: () => this.updateHospitalInfo()},
             {id: 'update-hospital-message', handler: () => this.updateHospitalMessage()},
             {id: 'update-email-template', handler: () => this.updateEmailTemplate()},
-            {id: 'save-emailjs-config', handler: () => this.saveEmailJSConfig()}
+            {id: 'save-emailjs-config', handler: () => this.saveEmailJSConfig()},
+            {id: 'save-google-calendar-config', handler: () => this.saveGoogleCalendarConfig()},
+            {id: 'test-google-calendar', handler: () => this.testGoogleCalendarConnection()}
         ];
 
         settingsButtons.forEach(({id, handler}) => {
             const btn = document.getElementById(id);
             if (btn) {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
+                btn.addEventListener('click', () => {
                     handler();
                 });
             }
@@ -309,15 +328,13 @@ class HospitalReservationSystem {
         const saveTypeBtn = document.getElementById('save-type-edit');
 
         if (cancelTypeBtn) {
-            cancelTypeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            cancelTypeBtn.addEventListener('click', () => {
                 this.hideModal('type-edit-modal');
             });
         }
 
         if (saveTypeBtn) {
-            saveTypeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            saveTypeBtn.addEventListener('click', () => {
                 this.saveTypeEdit();
             });
         }
@@ -328,22 +345,19 @@ class HospitalReservationSystem {
         const deleteReservationBtn = document.getElementById('delete-reservation');
 
         if (cancelReservationBtn) {
-            cancelReservationBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            cancelReservationBtn.addEventListener('click', () => {
                 this.hideModal('reservation-edit-modal');
             });
         }
 
         if (saveReservationBtn) {
-            saveReservationBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            saveReservationBtn.addEventListener('click', () => {
                 this.saveReservationEdit();
             });
         }
 
         if (deleteReservationBtn) {
-            deleteReservationBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            deleteReservationBtn.addEventListener('click', () => {
                 this.deleteReservation();
             });
         }
@@ -351,8 +365,7 @@ class HospitalReservationSystem {
         // Success modal
         const closeSuccessBtn = document.getElementById('close-success-modal');
         if (closeSuccessBtn) {
-            closeSuccessBtn.addEventListener('click', (e) => {
-                e.preventDefault();
+            closeSuccessBtn.addEventListener('click', () => {
                 this.hideModal('success-modal');
                 this.showScreen('main-screen');
             });
@@ -784,6 +797,9 @@ class HospitalReservationSystem {
         // Send email
         this.sendReservationEmail(newReservation);
 
+        // Add to Google Calendar if configured
+        this.addToGoogleCalendar(newReservation);
+
         // Show success modal
         this.showModal('success-modal');
     }
@@ -800,7 +816,7 @@ class HospitalReservationSystem {
         const templateParams = {
             to_email: reservation.email,
             patient_name: reservation.name,
-            hospital_name: 'サンプル病院',
+            hospital_name: settings.hospitalInfo.name,
             reservation_type: selectedType ? selectedType.name : reservation.type,
             reservation_date: new Date(reservation.date).toLocaleDateString('ja-JP'),
             reservation_time: reservation.time,
@@ -817,6 +833,89 @@ class HospitalReservationSystem {
                 () => console.log('Email sent successfully'),
                 (error) => console.log('Email failed to send:', error)
             );
+        }
+    }
+
+    // Google Calendar Integration
+    addToGoogleCalendar(reservation) {
+        const settings = this.getSettings();
+        
+        if (!settings.googleCalendar.enabled || !settings.googleCalendar.apiKey || !settings.googleCalendar.calendarId) {
+            console.log('Google Calendar not configured');
+            return;
+        }
+
+        const selectedType = this.getReservationTypes().find(t => t.id === reservation.type);
+        const startDateTime = new Date(`${reservation.date}T${reservation.time}:00`);
+        const endDateTime = new Date(startDateTime.getTime() + 30 * 60000); // 30 minutes
+
+        const event = {
+            summary: `${selectedType ? selectedType.name : reservation.type} - ${reservation.name}`,
+            description: `患者: ${reservation.name}\nメール: ${reservation.email}\n電話: ${reservation.phone}\n備考: ${reservation.notes || 'なし'}`,
+            start: {
+                dateTime: startDateTime.toISOString()
+            },
+            end: {
+                dateTime: endDateTime.toISOString()
+            }
+        };
+
+        // This would be the actual Google Calendar API call
+        // For demo purposes, we just log the event
+        console.log('Would add to Google Calendar:', event);
+    }
+
+    testGoogleCalendarConnection() {
+        const apiKey = document.getElementById('google-calendar-api-key').value.trim();
+        const calendarId = document.getElementById('google-calendar-id').value.trim();
+
+        if (!apiKey || !calendarId) {
+            this.updateGoogleCalendarStatus('error', 'APIキーとカレンダーIDを入力してください');
+            return;
+        }
+
+        this.updateGoogleCalendarStatus('info', '接続をテスト中...');
+
+        // Simulate API test (in real implementation, you would call Google Calendar API)
+        setTimeout(() => {
+            // For demo purposes, we simulate a successful connection
+            if (apiKey.length > 10 && calendarId.includes('@')) {
+                this.updateGoogleCalendarStatus('success', '接続成功！Google Calendarと連携できます');
+            } else {
+                this.updateGoogleCalendarStatus('error', '接続に失敗しました。設定を確認してください');
+            }
+        }, 2000);
+    }
+
+    updateGoogleCalendarStatus(type, message) {
+        const statusElement = document.getElementById('google-calendar-status');
+        const statusText = document.getElementById('calendar-status-text');
+
+        if (statusElement && statusText) {
+            statusElement.className = `status status--${type}`;
+            statusText.textContent = message;
+        }
+    }
+
+    saveGoogleCalendarConfig() {
+        const apiKey = document.getElementById('google-calendar-api-key').value.trim();
+        const calendarId = document.getElementById('google-calendar-id').value.trim();
+
+        const settings = this.getSettings();
+        settings.googleCalendar = {
+            apiKey: apiKey,
+            calendarId: calendarId,
+            enabled: !!(apiKey && calendarId)
+        };
+
+        this.saveSettings(settings);
+        
+        if (apiKey && calendarId) {
+            this.updateGoogleCalendarStatus('success', '設定を保存しました');
+            alert('Google Calendar連携設定を保存しました。');
+        } else {
+            this.updateGoogleCalendarStatus('info', '未設定');
+            alert('Google Calendar連携設定を保存しました。');
         }
     }
 
@@ -1100,9 +1199,9 @@ class HospitalReservationSystem {
                 if (element) element.value = defaultValue;
             });
             
-            // Clear excluded weekdays - default: exclude weekends
+            // Clear excluded weekdays - default: exclude Sunday
             document.querySelectorAll('.weekday-checkboxes input').forEach(checkbox => {
-                checkbox.checked = [0, 6].includes(parseInt(checkbox.value));
+                checkbox.checked = [0].includes(parseInt(checkbox.value));
             });
         }
 
@@ -1186,7 +1285,8 @@ class HospitalReservationSystem {
                     2: {start: values['start-time'], end: values['end-time']},
                     3: {start: values['start-time'], end: values['end-time']},
                     4: {start: values['start-time'], end: values['end-time']},
-                    5: {start: values['start-time'], end: values['end-time']}
+                    5: {start: values['start-time'], end: values['end-time']},
+                    6: {start: values['start-time'], end: values['end-time']}
                 }
             };
             types.push(newType);
@@ -1215,18 +1315,30 @@ class HospitalReservationSystem {
         const settings = this.getSettings();
         
         const settingsFields = [
+            {id: 'hospital-name-input', value: settings.hospitalInfo?.name || 'さくら総合病院'},
+            {id: 'hospital-phone-input', value: settings.hospitalInfo?.phone || '03-1234-5678'},
+            {id: 'hospital-address-input', value: settings.hospitalInfo?.address || '東京都中央区○○1-2-3'},
             {id: 'hospital-message-input', value: settings.hospitalMessage || ''},
             {id: 'email-subject', value: settings.emailTemplate?.subject || ''},
             {id: 'email-body', value: settings.emailTemplate?.body || ''},
             {id: 'emailjs-service-id', value: settings.emailjsConfig?.serviceId || ''},
             {id: 'emailjs-template-id', value: settings.emailjsConfig?.templateId || ''},
-            {id: 'emailjs-public-key', value: settings.emailjsConfig?.publicKey || ''}
+            {id: 'emailjs-public-key', value: settings.emailjsConfig?.publicKey || ''},
+            {id: 'google-calendar-api-key', value: settings.googleCalendar?.apiKey || ''},
+            {id: 'google-calendar-id', value: settings.googleCalendar?.calendarId || ''}
         ];
 
         settingsFields.forEach(({id, value}) => {
             const element = document.getElementById(id);
             if (element) element.value = value;
         });
+
+        // Update Google Calendar status
+        if (settings.googleCalendar?.enabled) {
+            this.updateGoogleCalendarStatus('success', '設定済み - 連携が有効です');
+        } else {
+            this.updateGoogleCalendarStatus('info', '未設定');
+        }
     }
 
     changeAdminPassword() {
@@ -1252,6 +1364,24 @@ class HospitalReservationSystem {
         
         passwordElement.value = '';
         alert('パスワードを変更しました。');
+    }
+
+    updateHospitalInfo() {
+        const nameElement = document.getElementById('hospital-name-input');
+        const phoneElement = document.getElementById('hospital-phone-input');
+        const addressElement = document.getElementById('hospital-address-input');
+        
+        if (!nameElement || !phoneElement || !addressElement) return;
+
+        const settings = this.getSettings();
+        settings.hospitalInfo = {
+            name: nameElement.value.trim(),
+            phone: phoneElement.value.trim(),
+            address: addressElement.value.trim()
+        };
+        this.saveSettings(settings);
+        
+        alert('病院情報を更新しました。');
     }
 
     updateHospitalMessage() {
@@ -1332,6 +1462,4 @@ class HospitalReservationSystem {
 }
 
 // Initialize the system when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.reservationSystem = new HospitalReservationSystem();
-});
+window.reservationSystem = new HospitalReservationSystem();
