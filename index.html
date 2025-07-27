@@ -13,7 +13,7 @@
     <div id="main-screen" class="screen active">
         <div class="container">
             <header class="header">
-                <h1><i class="fas fa-hospital"></i> サンプル病院 予約システム</h1>
+                <h1><i class="fas fa-hospital"></i> 臨港病院 予約システム</h1>
                 <button id="admin-login-btn" class="btn btn--outline admin-btn">
                     <i class="fas fa-cog"></i> 管理者ログイン
                 </button>
@@ -22,7 +22,7 @@
             <div class="hospital-message">
                 <div class="message-box">
                     <h3><i class="fas fa-info-circle"></i> お知らせ</h3>
-                    <p id="hospital-message-text">本日も皆様のご健康をサポートいたします。ご予約をお取りいただき、ありがとうございます。</p>
+                    <p id="hospital-message-text">お気軽にご予約ください。ご不明な点がございましたらお電話でお問い合わせください。</p>
                 </div>
             </div>
             
@@ -248,7 +248,7 @@
                     <i class="fas fa-list"></i> 予約種類管理
                 </button>
                 <button class="nav-tab" data-tab="settings">
-                    <i class="fas fa-cog"></i> 設定
+                    <i class="fas fa-cog"></i> 設定管理
                 </button>
             </nav>
 
@@ -285,14 +285,14 @@
                 </div>
             </div>
 
-            <!-- 設定タブ -->
+            <!-- 設定管理タブ -->
             <div id="admin-settings" class="admin-content">
                 <div class="admin-section">
-                    <h3>基本設定</h3>
+                    <h3>設定管理</h3>
                     
                     <div class="card">
                         <div class="card__header">
-                            <h4>パスワード変更</h4>
+                            <h4>管理者パスワード変更</h4>
                         </div>
                         <div class="card__body">
                             <div class="form-group">
@@ -305,7 +305,28 @@
 
                     <div class="card">
                         <div class="card__header">
-                            <h4>病院メッセージ</h4>
+                            <h4>病院情報設定</h4>
+                        </div>
+                        <div class="card__body">
+                            <div class="form-group">
+                                <label class="form-label" for="hospital-name-input">病院名</label>
+                                <input type="text" id="hospital-name-input" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="hospital-phone-input">電話番号</label>
+                                <input type="tel" id="hospital-phone-input" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="hospital-address-input">住所</label>
+                                <input type="text" id="hospital-address-input" class="form-control">
+                            </div>
+                            <button id="update-hospital-info" class="btn btn--primary">病院情報を更新</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__header">
+                            <h4>お知らせメッセージ設定</h4>
                         </div>
                         <div class="card__body">
                             <div class="form-group">
@@ -313,6 +334,45 @@
                                 <textarea id="hospital-message-input" class="form-control" rows="3"></textarea>
                             </div>
                             <button id="update-hospital-message" class="btn btn--primary">メッセージを更新</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card__header">
+                            <h4><i class="fab fa-google"></i> Google Calendar連携設定</h4>
+                        </div>
+                        <div class="card__body">
+                            <div class="form-group">
+                                <label class="form-label" for="google-calendar-api-key">Google Calendar API キー</label>
+                                <input type="text" id="google-calendar-api-key" class="form-control" placeholder="Google Cloud Consoleで取得したAPIキーを入力">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="google-calendar-id">カレンダーID</label>
+                                <input type="text" id="google-calendar-id" class="form-control" placeholder="連携するGoogleカレンダーのIDを入力">
+                            </div>
+                            <div class="form-group">
+                                <div class="status" id="google-calendar-status">
+                                    <span id="calendar-status-text">未設定</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button id="test-google-calendar" class="btn btn--outline">
+                                    <i class="fas fa-check-circle"></i> 連携テスト
+                                </button>
+                                <button id="save-google-calendar-config" class="btn btn--primary">
+                                    <i class="fas fa-save"></i> 設定を保存
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                <small>
+                                    <strong>設定手順：</strong><br>
+                                    1. Google Cloud Consoleでプロジェクトを作成<br>
+                                    2. Calendar APIを有効化<br>
+                                    3. APIキーを作成してここに入力<br>
+                                    4. 連携したいGoogleカレンダーのIDを入力<br>
+                                    5. 「連携テスト」で動作確認後、「設定を保存」
+                                </small>
+                            </div>
                         </div>
                     </div>
 
@@ -328,7 +388,7 @@
                             <div class="form-group">
                                 <label class="form-label" for="email-body">本文</label>
                                 <textarea id="email-body" class="form-control" rows="10"></textarea>
-                                <small class="form-text">使用可能な変数: {{hospitalName}}, {{patientName}}, {{reservationType}}, {{reservationDate}}, {{reservationTime}}</small>
+                                <small class="form-text">使用可能な変数: {{patientName}}, {{reservationType}}, {{date}}, {{timeSlot}}</small>
                             </div>
                             <button id="update-email-template" class="btn btn--primary">テンプレートを更新</button>
                         </div>
