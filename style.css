@@ -1266,6 +1266,32 @@ select.form-control {
     margin-top: var(--space-16);
 }
 
+/* Google Calendar status indicator */
+#google-calendar-status {
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+#google-calendar-status.status--info {
+    background-color: rgba(var(--color-info-rgb), 0.1);
+    color: var(--color-info);
+    border: 1px solid rgba(var(--color-info-rgb), 0.3);
+}
+
+#google-calendar-status.status--success {
+    background-color: rgba(var(--color-success-rgb), 0.1);
+    color: var(--color-success);
+    border: 1px solid rgba(var(--color-success-rgb), 0.3);
+}
+
+#google-calendar-status.status--error {
+    background-color: rgba(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
+    border: 1px solid rgba(var(--color-error-rgb), 0.3);
+}
+
 /* Modal styles */
 .modal {
     position: fixed;
