@@ -55,8 +55,8 @@ let appData = {
         adminPassword: "admin123",
         emailTemplate: "{{name}}様\n\nご予約ありがとうございます。\n\n予約詳細:\n日時: {{date}} {{time}}\n種類: {{type}}\nお名前: {{name}}\nメール: {{email}}\n電話: {{phone}}\n備考: {{notes}}\n\n何かご不明な点がございましたら、お電話にてご連絡ください。",
         emailSettings: {
-            serviceId: "service_sj4j47e",
-            templateId: "template_u2cwp0d",
+            serviceId: "sj4j47e",
+            templateId: "u2cwp0d",
             publicKey: "xyuPENz5fwFEEPlrP"
         }
     }
