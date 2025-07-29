@@ -1,11 +1,11 @@
 // Firebase設定 - 実際のプロジェクトでは自分のFirebaseプロジェクトの設定に置き換えてください
 const firebaseConfig = {
   // 実際の使用時は適切な値に置き換えてください
-  apiKey: "your-api-key-here",
-  authDomain: "your-project.firebaseapp.com", 
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
+  apiKey: "AIzaSyCdIKKQktfxR990-JXcnutnCtg_KTBgEGI",
+  authDomain: "hospital-reservation.firebaseapp.com", 
+  projectId: "hospital-reservation-6b1fa",
+  storageBucket: "hospital-reservation.appspot.com",
+  messagingSenderId: "918883221296",
   appId: "your-app-id"
 };
 
