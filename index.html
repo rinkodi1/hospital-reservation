@@ -297,13 +297,16 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card__header">
-                                <h5 class="m-0">SendGrid設定</h5>
+                                <h5 class="m-0">Brevo設定</h5>
                             </div>
                             <div class="card__body">
                                 <form id="emailConfigForm">
                                     <div class="form-group mb-3">
                                         <label class="form-label">API キー</label>
-                                        <input type="password" id="emailApiKey" class="form-control" placeholder="SendGrid APIキーを入力">
+                                        <input type="password" id="brevoApiKey" class="form-control" placeholder="Brevo APIキーを入力">
+                                        <small class="form-text text-muted">
+                                            Brevo（旧Sendinblue）のAPIキーを入力してください。
+                                        </small>
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="form-label">送信者メールアドレス</label>
@@ -332,7 +335,10 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="form-label">本文テンプレート</label>
-                                        <textarea id="emailTemplate" class="form-control" rows="8" placeholder="利用可能な変数: {name}, {date}, {time}, {type}, {message}"></textarea>
+                                        <textarea id="emailTemplate" class="form-control" rows="8" placeholder="利用可能な変数: {{name}}, {{date}}, {{time}}, {{type}}, {{notes}}"></textarea>
+                                        <small class="form-text text-muted">
+                                            利用可能な変数: {{name}}, {{date}}, {{time}}, {{type}}, {{notes}}
+                                        </small>
                                     </div>
                                     <button type="submit" class="btn btn--primary">テンプレートを保存</button>
                                     <button type="button" id="sendTestEmail" class="btn btn--outline ms-2">テストメール送信</button>
