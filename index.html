@@ -152,6 +152,9 @@
                     <div class="form-group">
                         <label class="form-label">パスワード</label>
                         <input type="password" id="adminPassword" class="form-control" required>
+                        <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-8);">
+                            デフォルトパスワード: admin123
+                        </p>
                     </div>
                     <button type="submit" class="btn btn--primary btn--full-width">ログイン</button>
                 </form>
@@ -255,27 +258,32 @@
                 <!-- メール設定 -->
                 <div id="emailTab" class="tab-content">
                     <h2>メール設定</h2>
+                    <div class="message warning" style="margin-bottom: var(--space-20);">
+                        <strong>重要:</strong> ブラウザのCORS制限により、クライアントサイドからのBrevo API直接呼び出しが制限される場合があります。実際の運用では、サーバーサイド（Netlify Functions等）での実装を推奨します。
+                    </div>
+                    
                     <div class="card">
                         <div class="card__body">
                             <h3>Brevo API設定</h3>
                             <form id="brevoForm">
                                 <div class="form-group">
                                     <label class="form-label">API Key</label>
-                                    <input type="text" id="brevoApiKey" class="form-control">
+                                    <input type="text" id="brevoApiKey" class="form-control" placeholder="xkeysib-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">送信者メールアドレス</label>
-                                    <input type="email" id="senderEmail" class="form-control">
+                                    <input type="email" id="senderEmail" class="form-control" placeholder="noreply@yourhos pital.com">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">送信者名</label>
-                                    <input type="text" id="senderName" class="form-control">
+                                    <input type="text" id="senderName" class="form-control" placeholder="○○クリニック">
                                 </div>
                                 <button type="submit" class="btn btn--primary">設定を保存</button>
                                 <button type="button" id="testConnection" class="btn btn--outline">接続テスト</button>
                             </form>
                         </div>
                     </div>
+                    
                     <div class="card">
                         <div class="card__body">
                             <h3>メールテンプレート</h3>
@@ -286,8 +294,10 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">メール本文</label>
-                                    <textarea id="emailTemplate" class="form-control" rows="10">
-{customerName} 様
+                                    <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+                                        以下の変数が使用できます: {customerName}, {reservationType}, {reservationDateTime}, {notes}
+                                    </p>
+                                    <textarea id="emailTemplate" class="form-control" rows="15">{customerName} 様
 
 この度は、当院にてご予約をいただき、誠にありがとうございます。
 以下の内容でご予約を承りました。
@@ -302,9 +312,8 @@
 当日は保険証をお持ちください。
 お待ちしております。
 
-病院名
-電話番号: XXX-XXXX-XXXX
-                                    </textarea>
+○○クリニック
+電話番号: XXX-XXXX-XXXX</textarea>
                                 </div>
                                 <button type="submit" class="btn btn--primary">テンプレートを保存</button>
                                 <button type="button" id="sendTestEmail" class="btn btn--outline">テストメール送信</button>
@@ -319,6 +328,9 @@
                     <div class="card">
                         <div class="card__body">
                             <h3>パスワード変更</h3>
+                            <p style="color: var(--color-text-secondary); margin-bottom: var(--space-16);">
+                                セキュリティ向上のため、デフォルトパスワードから変更することを推奨します。
+                            </p>
                             <form id="passwordForm">
                                 <div class="form-group">
                                     <label class="form-label">現在のパスワード</label>
@@ -336,6 +348,7 @@
                             </form>
                         </div>
                     </div>
+                    
                     <div class="card">
                         <div class="card__body">
                             <h3>お知らせメッセージ設定</h3>
