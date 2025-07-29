@@ -1165,6 +1165,12 @@ select.form-control {
   border-radius: var(--radius-sm);
 }
 
+.btn--sm {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-sm);
+}
+
 /* 予約種類リスト */
 .reservation-type-item {
   margin-bottom: var(--space-16);
@@ -1492,6 +1498,12 @@ select.form-control {
   color: var(--color-warning);
 }
 
+.message.info {
+  background-color: rgba(var(--color-info-rgb), 0.1);
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+
 /* ローディング */
 .loading {
   display: inline-block;
@@ -1564,4 +1576,149 @@ input:checked + .toggle-slider {
 
 input:checked + .toggle-slider:before {
   transform: translateX(26px);
+}
+
+/* 追加スタイル - メッセージ表示の改善 */
+.message-container {
+  position: fixed;
+  top: var(--space-20);
+  right: var(--space-20);
+  left: var(--space-20);
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.message-container .message {
+  pointer-events: auto;
+  animation: slideInDown var(--duration-normal) var(--ease-standard);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 予約フォームの改善 */
+.form-progress {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-32);
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.progress-step.active {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.progress-step:not(:last-child)::after {
+  content: "→";
+  margin: 0 var(--space-12);
+  color: var(--color-text-secondary);
+}
+
+/* 管理者画面の統計カードの改善 */
+.stat-trend {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-4);
+}
+
+.stat-trend.up {
+  color: var(--color-success);
+}
+
+.stat-trend.down {
+  color: var(--color-error);
+}
+
+/* データ保護に関する注意書き */
+.data-notice {
+  background-color: var(--color-bg-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-16);
+  margin-bottom: var(--space-20);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.data-notice h4 {
+  color: var(--color-text);
+  margin-bottom: var(--space-8);
+}
+
+/* ツールチップのスタイル */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-charcoal-800);
+  color: var(--color-white);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  z-index: 1000;
+  animation: fadeIn var(--duration-fast) var(--ease-standard);
+}
+
+/* アクセシビリティの改善 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+  }
+  
+  .time-slot {
+    border-width: 2px;
+  }
+}
+
+/* モーション設定を尊重 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
