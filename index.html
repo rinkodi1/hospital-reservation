@@ -8,105 +8,73 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
-    <!-- メイン画面 -->
+    <!-- メイン画面（予約者用） -->
     <div id="main-screen" class="screen active">
         <div class="container">
             <header class="header">
                 <h1>病院予約システム</h1>
-                <button id="admin-login-btn" class="btn btn--outline">管理者ログイン</button>
+                <button type="button" id="admin-login-btn" class="btn btn--outline btn--sm">管理者ログイン</button>
             </header>
-            
-            <div class="hospital-message card">
-                <div class="card__body">
-                    <h3>病院からのお知らせ</h3>
-                    <p id="hospital-message-text">当院の予約システムをご利用いただき、ありがとうございます。ご不明な点がございましたら、お電話にてお問い合わせください。</p>
-                </div>
-            </div>
 
-            <div class="reservation-start card">
+            <!-- 病院からのメッセージ -->
+            <div class="card mb-24">
                 <div class="card__body">
-                    <h2>予約を開始する</h2>
-                    <p>ご希望の予約種類を選択してください。</p>
-                    <div id="reservation-types" class="reservation-types">
-                        <!-- 予約種類が動的に表示される -->
+                    <h2>お知らせ</h2>
+                    <div id="hospital-message">
+                        ご来院いただきありがとうございます。オンライン予約システムをご利用ください。
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- 予約フォーム画面 -->
-    <div id="reservation-screen" class="screen">
-        <div class="container">
-            <header class="header">
-                <h1>予約フォーム</h1>
-                <button id="back-to-main" class="btn btn--outline">戻る</button>
-            </header>
-
-            <div class="reservation-form card">
+            <!-- 予約フォーム -->
+            <div class="card">
+                <div class="card__header">
+                    <h2>新規予約</h2>
+                </div>
                 <div class="card__body">
-                    <h2 id="selected-reservation-type">健康診断の予約</h2>
-                    
-                    <!-- ステップ1: 患者情報 -->
-                    <div id="step-patient-info" class="step active">
-                        <h3>患者情報を入力してください</h3>
-                        <form id="patient-form">
-                            <div class="form-group">
-                                <label class="form-label" for="patient-name">お名前 *</label>
-                                <input type="text" id="patient-name" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="patient-email">メールアドレス *</label>
-                                <input type="email" id="patient-email" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="patient-phone">電話番号 *</label>
-                                <input type="tel" id="patient-phone" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn--primary">次へ</button>
-                        </form>
-                    </div>
-
-                    <!-- ステップ2: 日付選択 -->
-                    <div id="step-date-selection" class="step">
-                        <h3>予約日を選択してください</h3>
+                    <form id="booking-form" novalidate>
                         <div class="form-group">
-                            <label class="form-label" for="reservation-date">予約日</label>
-                            <input type="date" id="reservation-date" class="form-control">
+                            <label class="form-label" for="patient-name">お名前 *</label>
+                            <input type="text" class="form-control" id="patient-name" name="patient-name" required>
                         </div>
-                        <div class="step-buttons">
-                            <button id="prev-to-patient" class="btn btn--outline">戻る</button>
-                            <button id="next-to-time" class="btn btn--primary">次へ</button>
-                        </div>
-                    </div>
 
-                    <!-- ステップ3: 時間選択 -->
-                    <div id="step-time-selection" class="step">
-                        <h3>予約時間を選択してください</h3>
-                        <div id="time-slots" class="time-slots">
-                            <!-- 時間スロットが動的に表示される -->
+                        <div class="form-group">
+                            <label class="form-label" for="patient-email">メールアドレス *</label>
+                            <input type="email" class="form-control" id="patient-email" name="patient-email" required>
                         </div>
-                        <div class="step-buttons">
-                            <button id="prev-to-date" class="btn btn--outline">戻る</button>
-                            <button id="next-to-confirm" class="btn btn--primary" disabled>次へ</button>
-                        </div>
-                    </div>
 
-                    <!-- ステップ4: 確認 -->
-                    <div id="step-confirmation" class="step">
-                        <h3>予約内容の確認</h3>
-                        <div id="reservation-summary" class="reservation-summary">
-                            <!-- 予約内容が表示される -->
+                        <div class="form-group">
+                            <label class="form-label" for="patient-phone">電話番号 *</label>
+                            <input type="tel" class="form-control" id="patient-phone" name="patient-phone" required>
                         </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="booking-type">予約種類 *</label>
+                            <select class="form-control" id="booking-type" name="booking-type" required>
+                                <option value="">選択してください</option>
+                                <!-- オプションはJavaScriptで動的に追加されます -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="booking-date">予約希望日 *</label>
+                            <input type="date" class="form-control" id="booking-date" name="booking-date" required>
+                        </div>
+
+                        <div class="form-group" id="time-slots" style="display:none;">
+                            <label class="form-label">予約時間 *</label>
+                            <div id="time-slots-container">
+                                <!-- 時間枠がここに表示されます -->
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label class="form-label" for="patient-notes">備考（任意）</label>
-                            <textarea id="patient-notes" class="form-control" rows="3" placeholder="病院へのメッセージをご記入ください"></textarea>
+                            <textarea class="form-control" id="patient-notes" name="patient-notes" rows="3" placeholder="病院へのメッセージがあればお書きください"></textarea>
                         </div>
-                        <div class="step-buttons">
-                            <button id="prev-to-time" class="btn btn--outline">戻る</button>
-                            <button id="confirm-reservation" class="btn btn--primary">予約を確定する</button>
-                        </div>
-                    </div>
+
+                        <button type="submit" id="submit-booking" class="btn btn--primary btn--full-width">予約する</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -115,19 +83,20 @@
     <!-- 管理者ログイン画面 -->
     <div id="admin-login-screen" class="screen">
         <div class="container">
-            <header class="header">
-                <h1>管理者ログイン</h1>
-                <button id="back-to-main-from-login" class="btn btn--outline">戻る</button>
-            </header>
-
-            <div class="login-form card">
+            <div class="card admin-login-card">
+                <div class="card__header">
+                    <h2>管理者ログイン</h2>
+                </div>
                 <div class="card__body">
-                    <form id="admin-login-form">
+                    <form id="admin-login-form" novalidate>
                         <div class="form-group">
                             <label class="form-label" for="admin-password">パスワード</label>
-                            <input type="password" id="admin-password" class="form-control" required>
+                            <input type="password" class="form-control" id="admin-password" name="admin-password" required>
                         </div>
-                        <button type="submit" class="btn btn--primary btn--full-width">ログイン</button>
+                        <div class="flex gap-8">
+                            <button type="submit" class="btn btn--primary">ログイン</button>
+                            <button type="button" id="back-to-main" class="btn btn--outline">戻る</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -139,184 +108,141 @@
         <div class="container">
             <header class="header">
                 <h1>管理者画面</h1>
-                <button id="admin-logout" class="btn btn--outline">ログアウト</button>
+                <button type="button" id="admin-logout-btn" class="btn btn--outline btn--sm">ログアウト</button>
             </header>
 
-            <nav class="admin-nav">
-                <button class="admin-nav-btn active" data-section="dashboard">ダッシュボード</button>
-                <button class="admin-nav-btn" data-section="reservation-types">予約種類管理</button>
-                <button class="admin-nav-btn" data-section="reservations">予約管理</button>
-                <button class="admin-nav-btn" data-section="email">メール管理</button>
-                <button class="admin-nav-btn" data-section="system">システム設定</button>
-            </nav>
+            <!-- タブナビゲーション -->
+            <div class="tab-nav">
+                <button type="button" class="tab-btn active" data-tab="dashboard">ダッシュボード</button>
+                <button type="button" class="tab-btn" data-tab="bookings">予約管理</button>
+                <button type="button" class="tab-btn" data-tab="types">予約種類</button>
+                <button type="button" class="tab-btn" data-tab="settings">設定</button>
+                <button type="button" class="tab-btn" data-tab="backup">バックアップ</button>
+            </div>
 
-            <!-- ダッシュボード -->
-            <div id="admin-dashboard" class="admin-section active">
-                <h2>ダッシュボード</h2>
-                
-                <div class="dashboard-stats">
-                    <div class="stat-card card">
+            <!-- ダッシュボードタブ -->
+            <div id="dashboard-tab" class="tab-content active">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>予約状況一覧</h3>
+                        </div>
                         <div class="card__body">
-                            <h3>今日の予約</h3>
-                            <div class="stat-number" id="today-reservations">0</div>
+                            <div class="table-controls">
+                                <select id="sort-by" class="form-control" name="sort-by">
+                                    <option value="date">日付順</option>
+                                    <option value="type">種類順</option>
+                                    <option value="name">名前順</option>
+                                </select>
+                                <button type="button" id="print-list" class="btn btn--outline btn--sm">印刷</button>
+                            </div>
+                            <div id="bookings-list" class="bookings-table">
+                                <!-- 予約一覧がここに表示されます -->
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-card card">
-                        <div class="card__body">
-                            <h3>今週の予約</h3>
-                            <div class="stat-number" id="week-reservations">0</div>
+
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>カレンダー表示</h3>
                         </div>
-                    </div>
-                    <div class="stat-card card">
                         <div class="card__body">
-                            <h3>総予約数</h3>
-                            <div class="stat-number" id="total-reservations">0</div>
+                            <div class="calendar-controls">
+                                <input type="date" id="calendar-date" class="form-control" name="calendar-date">
+                            </div>
+                            <div id="calendar-view">
+                                <!-- カレンダー表示がここに表示されます -->
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="recent-reservations card">
+            <!-- 予約管理タブ -->
+            <div id="bookings-tab" class="tab-content">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>予約管理</h3>
+                    </div>
                     <div class="card__body">
-                        <h3>最近の予約</h3>
-                        <div id="recent-reservations-list">
-                            <!-- 最近の予約が表示される -->
+                        <div id="admin-bookings-list">
+                            <!-- 管理用予約一覧がここに表示されます -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 予約種類管理 -->
-            <div id="admin-reservation-types" class="admin-section">
-                <h2>予約種類管理</h2>
-                
-                <div class="section-actions">
-                    <button id="add-reservation-type" class="btn btn--primary">新しい予約種類を追加</button>
-                </div>
-
-                <div id="reservation-types-list">
-                    <!-- 予約種類リストが表示される -->
-                </div>
-            </div>
-
-            <!-- 予約管理 -->
-            <div id="admin-reservations" class="admin-section">
-                <h2>予約管理</h2>
-                
-                <div class="reservation-filters">
-                    <div class="filters-row">
-                        <select id="filter-type" class="form-control">
-                            <option value="">すべての種類</option>
-                        </select>
-                        <input type="date" id="filter-date" class="form-control">
-                        <select id="sort-by" class="form-control">
-                            <option value="date">日付順</option>
-                            <option value="type">種類順</option>
-                            <option value="name">名前順</option>
-                        </select>
+            <!-- 予約種類タブ -->
+            <div id="types-tab" class="tab-content">
+                <div class="card">
+                    <div class="card__header">
+                        <h3>予約種類管理</h3>
+                        <button type="button" id="add-type-btn" class="btn btn--primary btn--sm">新規追加</button>
                     </div>
-                </div>
-
-                <div class="view-toggle">
-                    <button id="list-view-btn" class="btn btn--outline active">一覧表示</button>
-                    <button id="calendar-view-btn" class="btn btn--outline">カレンダー表示</button>
-                </div>
-
-                <div id="reservations-list-view">
-                    <!-- 予約一覧が表示される -->
-                </div>
-
-                <div id="reservations-calendar-view" class="hidden">
-                    <div class="calendar-controls">
-                        <button id="prev-month" class="btn btn--outline">&lt;</button>
-                        <span id="current-month-year"></span>
-                        <button id="next-month" class="btn btn--outline">&gt;</button>
-                    </div>
-                    <div id="calendar-grid">
-                        <!-- カレンダーが表示される -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- メール管理 -->
-            <div id="admin-email" class="admin-section">
-                <h2>メール管理</h2>
-                
-                <div class="email-sections">
-                    <div class="email-settings card">
-                        <div class="card__body">
-                            <h3>EmailJS設定</h3>
-                            <div class="form-group">
-                                <label class="form-label">Service ID</label>
-                                <input type="text" id="emailjs-service-id" class="form-control" placeholder="YOUR_EMAILJS_SERVICE_ID">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Template ID</label>
-                                <input type="text" id="emailjs-template-id" class="form-control" placeholder="YOUR_EMAILJS_TEMPLATE_ID">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Public Key</label>
-                                <input type="text" id="emailjs-public-key" class="form-control" placeholder="YOUR_EMAILJS_PUBLIC_KEY">
-                            </div>
-                            <div class="form-actions">
-                                <button id="test-emailjs-connection" class="btn btn--outline">接続テスト</button>
-                                <button id="save-emailjs-settings" class="btn btn--primary">設定を保存</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="email-template card">
-                        <div class="card__body">
-                            <h3>メールテンプレート</h3>
-                            <div class="form-group">
-                                <label class="form-label">予約完了メールテンプレート</label>
-                                <textarea id="email-template" class="form-control" rows="8" placeholder="{{name}}様、{{type}}のご予約を承りました。"></textarea>
-                                <small class="form-help">使用可能な変数: {{name}}, {{email}}, {{phone}}, {{type}}, {{date}}, {{time}}, {{notes}}</small>
-                            </div>
-                            <div class="form-actions">
-                                <button id="send-test-email" class="btn btn--outline">テストメール送信</button>
-                                <button id="save-email-template" class="btn btn--primary">テンプレートを保存</button>
-                            </div>
+                    <div class="card__body">
+                        <div id="booking-types-list">
+                            <!-- 予約種類一覧がここに表示されます -->
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- システム設定 -->
-            <div id="admin-system" class="admin-section">
-                <h2>システム設定</h2>
-                
-                <div class="system-sections">
-                    <div class="password-settings card">
-                        <div class="card__body">
+            <!-- 設定タブ -->
+            <div id="settings-tab" class="tab-content">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card__header">
                             <h3>パスワード変更</h3>
-                            <div class="form-group">
-                                <label class="form-label">新しいパスワード</label>
-                                <input type="password" id="new-admin-password" class="form-control">
-                            </div>
-                            <button id="change-admin-password" class="btn btn--primary">パスワードを変更</button>
+                        </div>
+                        <div class="card__body">
+                            <form id="password-change-form" novalidate>
+                                <div class="form-group">
+                                    <label class="form-label" for="new-password">新しいパスワード</label>
+                                    <input type="password" class="form-control" id="new-password" name="new-password" required>
+                                </div>
+                                <button type="submit" class="btn btn--primary">変更</button>
+                            </form>
                         </div>
                     </div>
 
-                    <div class="message-settings card">
-                        <div class="card__body">
+                    <div class="card">
+                        <div class="card__header">
                             <h3>病院メッセージ</h3>
-                            <div class="form-group">
-                                <label class="form-label">患者向けメッセージ</label>
-                                <textarea id="hospital-message" class="form-control" rows="4"></textarea>
-                            </div>
-                            <button id="save-hospital-message" class="btn btn--primary">メッセージを保存</button>
+                        </div>
+                        <div class="card__body">
+                            <form id="message-form" novalidate>
+                                <div class="form-group">
+                                    <label class="form-label" for="hospital-message-input">メッセージ</label>
+                                    <textarea class="form-control" id="hospital-message-input" name="hospital-message-input" rows="4"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn--primary">更新</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- バックアップタブ -->
+            <div id="backup-tab" class="tab-content">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>データバックアップ</h3>
+                        </div>
+                        <div class="card__body">
+                            <p>システムの全データをバックアップファイルとしてダウンロードします。</p>
+                            <button type="button" id="backup-btn" class="btn btn--primary">バックアップ作成</button>
                         </div>
                     </div>
 
-                    <div class="backup-settings card">
+                    <div class="card">
+                        <div class="card__header">
+                            <h3>データ復元</h3>
+                        </div>
                         <div class="card__body">
-                            <h3>データ管理</h3>
-                            <div class="backup-actions">
-                                <button id="backup-data" class="btn btn--outline">データをバックアップ</button>
-                                <input type="file" id="restore-file" accept=".json" style="display: none;">
-                                <button id="restore-data" class="btn btn--outline">データを復元</button>
-                                <button id="clear-all-data" class="btn btn--secondary">全データを削除</button>
-                            </div>
+                            <p>バックアップファイルからデータを復元します。</p>
+                            <input type="file" id="restore-file" name="restore-file" accept=".json" class="form-control">
+                            <button type="button" id="restore-btn" class="btn btn--primary mt-8">復元実行</button>
                         </div>
                     </div>
                 </div>
@@ -329,30 +255,95 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">タイトル</h3>
-                <button id="modal-close" class="modal-close">&times;</button>
+                <button type="button" id="modal-close" class="btn btn--outline btn--sm">×</button>
             </div>
-            <div id="modal-body" class="modal-body">
-                <!-- モーダル内容 -->
-            </div>
-            <div id="modal-footer" class="modal-footer">
-                <button id="modal-cancel" class="btn btn--outline">キャンセル</button>
-                <button id="modal-confirm" class="btn btn--primary">確認</button>
+            <div class="modal-body" id="modal-body">
+                <!-- モーダルコンテンツがここに表示されます -->
             </div>
         </div>
     </div>
 
-    <!-- ローディング -->
-    <div id="loading" class="loading hidden">
-        <div class="loading-spinner"></div>
-        <p>処理中...</p>
-    </div>
+    <!-- 予約種類編集フォーム（テンプレート） -->
+    <template id="type-form-template">
+        <form class="type-form" novalidate>
+            <div class="form-group">
+                <label class="form-label">予約種類名</label>
+                <input type="text" class="form-control type-name" name="type-name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">時間間隔（分）</label>
+                <input type="number" class="form-control type-interval" name="type-interval" min="5" max="120" value="15">
+            </div>
+            <div class="form-group">
+                <label class="form-label">定員数</label>
+                <input type="number" class="form-control type-capacity" name="type-capacity" min="1" max="100" value="10">
+            </div>
+            <div class="form-group">
+                <label class="form-label">開始時間</label>
+                <input type="time" class="form-control type-start-time" name="type-start-time" value="09:00">
+            </div>
+            <div class="form-group">
+                <label class="form-label">終了時間</label>
+                <input type="time" class="form-control type-end-time" name="type-end-time" value="17:00">
+            </div>
+            <div class="form-group">
+                <label class="form-label">営業曜日</label>
+                <div class="weekday-checkboxes">
+                    <label><input type="checkbox" name="weekdays" value="1" checked> 月</label>
+                    <label><input type="checkbox" name="weekdays" value="2" checked> 火</label>
+                    <label><input type="checkbox" name="weekdays" value="3" checked> 水</label>
+                    <label><input type="checkbox" name="weekdays" value="4" checked> 木</label>
+                    <label><input type="checkbox" name="weekdays" value="5" checked> 金</label>
+                    <label><input type="checkbox" name="weekdays" value="6"> 土</label>
+                    <label><input type="checkbox" name="weekdays" value="0"> 日</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">予約開始日</label>
+                <input type="date" class="form-control type-available-from" name="type-available-from">
+            </div>
+            <div class="form-group">
+                <label class="form-label">予約終了日</label>
+                <input type="date" class="form-control type-available-to" name="type-available-to">
+            </div>
+            <div class="form-group">
+                <label class="form-label">休日設定（yyyy-mm-dd形式、カンマ区切り）</label>
+                <textarea class="form-control type-holidays" name="type-holidays" rows="2" placeholder="2025-01-01,2025-12-31"></textarea>
+            </div>
+            <div class="flex gap-8">
+                <button type="submit" class="btn btn--primary">保存</button>
+                <button type="button" class="btn btn--outline modal-close">キャンセル</button>
+            </div>
+        </form>
+    </template>
 
-    <!-- 通知 -->
-    <div id="notification" class="notification hidden">
-        <span id="notification-message"></span>
-        <button id="notification-close">&times;</button>
-    </div>
-
+    <!-- JavaScript を最後に読み込み -->
     <script src="app.js"></script>
+    
+    <!-- デバッグ用のスクリプト -->
+    <script>
+        // ページ読み込み後に実行される確認用コード
+        window.addEventListener('load', function() {
+            console.log('Page fully loaded');
+            
+            // 主要な要素が存在するかチェック
+            const adminBtn = document.getElementById('admin-login-btn');
+            const bookingType = document.getElementById('booking-type');
+            const bookingForm = document.getElementById('booking-form');
+            
+            console.log('Admin button:', adminBtn ? 'Found' : 'Missing');
+            console.log('Booking type select:', bookingType ? 'Found' : 'Missing');
+            console.log('Booking form:', bookingForm ? 'Found' : 'Missing');
+            
+            // イベントリスナーのテスト用（管理者ボタン）
+            if (adminBtn) {
+                console.log('Adding click listener to admin button');
+                adminBtn.onclick = function() {
+                    console.log('Admin button clicked directly');
+                    alert('管理者ボタンがクリックされました');
+                };
+            }
+        });
+    </script>
 </body>
 </html>
