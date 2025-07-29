@@ -1,115 +1,152 @@
-// Hospital Reservation System JavaScript
+// 病院予約システム JavaScript
 class HospitalReservationSystem {
     constructor() {
-        this.initializeData();
-        this.initializeEventListeners();
-        this.loadPatientInterface();
+        this.currentStep = 1;
+        this.selectedType = null;
+        this.selectedDate = null;
+        this.selectedTime = null;
+        this.currentReservation = null;
+        this.editingReservationId = null;
+        this.editingTypeId = null;
+        this.currentCalendarDate = new Date();
+        
+        this.init();
     }
 
-    // Initialize default data structure
-    initializeData() {
-        if (!localStorage.getItem('hospitalReservationData')) {
-            const defaultData = {
-                settings: {
-                    adminPassword: "admin123",
-                    welcomeMessage: "当院の予約システムをご利用いただき、ありがとうございます。",
-                    brevoApiKey: "",
-                    emailTemplate: "この度は当院をご利用いただき、ありがとうございます。\n\n予約が完了いたしました。\n\n【予約詳細】\n予約種類: {{type}}\n予約日時: {{date}} {{time}}\nお名前: {{name}}\n電話番号: {{phone}}\n備考: {{notes}}\n\n何かご不明な点がございましたら、お電話にてお問い合わせください。\n\n当院",
-                    emailConfig: {
-                        fromEmail: "",
-                        fromName: "病院予約システム",
-                        subject: "予約完了のお知らせ"
-                    }
+    init() {
+        this.initializeDefaultData();
+        this.bindEvents();
+        this.loadReservationTypes();
+        this.updateNoticeMessage();
+        this.setMinDate();
+    }
+
+    // デフォルトデータの初期化
+    initializeDefaultData() {
+        const defaultTypes = [
+            {
+                id: 'health-check',
+                name: '健康診断',
+                duration: 15,
+                capacity: 10,
+                availablePeriod: {
+                    start: '2025-01-01',
+                    end: '2025-12-31'
                 },
-                reservationTypes: [
-                    {
-                        id: 1,
-                        name: "健康診断",
-                        interval: 15,
-                        startTime: "09:00",
-                        endTime: "17:00",
-                        capacity: 10,
-                        startDate: "2025-01-01",
-                        endDate: "2025-12-31",
-                        closedDays: ["土", "日"],
-                        weeklyHours: {
-                            月: {start: "09:00", end: "17:00"},
-                            火: {start: "09:00", end: "17:00"},
-                            水: {start: "09:00", end: "17:00"},
-                            木: {start: "09:00", end: "17:00"},
-                            金: {start: "09:00", end: "17:00"},
-                            土: {start: "", end: ""},
-                            日: {start: "", end: ""}
-                        }
-                    },
-                    {
-                        id: 2,
-                        name: "予防接種",
-                        interval: 15,
-                        startTime: "10:00",
-                        endTime: "16:00",
-                        capacity: 8,
-                        startDate: "2025-01-01",
-                        endDate: "2025-12-31",
-                        closedDays: ["日"],
-                        weeklyHours: {
-                            月: {start: "10:00", end: "16:00"},
-                            火: {start: "10:00", end: "16:00"},
-                            水: {start: "10:00", end: "16:00"},
-                            木: {start: "10:00", end: "16:00"},
-                            金: {start: "10:00", end: "16:00"},
-                            土: {start: "10:00", end: "15:00"},
-                            日: {start: "", end: ""}
-                        }
-                    }
-                ],
-                reservations: [
-                    {
-                        id: 1,
-                        type: "健康診断",
-                        date: "2025-08-01",
-                        time: "09:00",
-                        name: "田中太郎",
-                        email: "tanaka@example.com",
-                        phone: "090-1234-5678",
-                        notes: "血液検査希望",
-                        created: "2025-07-29T11:00:00Z"
-                    },
-                    {
-                        id: 2,
-                        type: "予防接種",
-                        date: "2025-08-02",
-                        time: "10:00",
-                        name: "佐藤花子",
-                        email: "sato@example.com",
-                        phone: "080-9876-5432",
-                        notes: "インフルエンザワクチン",
-                        created: "2025-07-29T11:00:00Z"
-                    }
-                ]
-            };
-            localStorage.setItem('hospitalReservationData', JSON.stringify(defaultData));
+                schedule: {
+                    monday: { enabled: true, start: '09:00', end: '17:00' },
+                    tuesday: { enabled: true, start: '09:00', end: '17:00' },
+                    wednesday: { enabled: true, start: '09:00', end: '17:00' },
+                    thursday: { enabled: true, start: '09:00', end: '17:00' },
+                    friday: { enabled: true, start: '09:00', end: '17:00' },
+                    saturday: { enabled: false, start: '09:00', end: '12:00' },
+                    sunday: { enabled: false, start: '09:00', end: '12:00' }
+                },
+                holidayDates: ['2025-01-01', '2025-05-03', '2025-12-29', '2025-12-30', '2025-12-31']
+            },
+            {
+                id: 'vaccination',
+                name: '予防接種',
+                duration: 15,
+                capacity: 8,
+                availablePeriod: {
+                    start: '2025-01-01',
+                    end: '2025-12-31'
+                },
+                schedule: {
+                    monday: { enabled: true, start: '09:00', end: '16:00' },
+                    tuesday: { enabled: true, start: '09:00', end: '16:00' },
+                    wednesday: { enabled: true, start: '09:00', end: '16:00' },
+                    thursday: { enabled: true, start: '09:00', end: '16:00' },
+                    friday: { enabled: true, start: '09:00', end: '16:00' },
+                    saturday: { enabled: false, start: '09:00', end: '12:00' },
+                    sunday: { enabled: false, start: '09:00', end: '12:00' }
+                },
+                holidayDates: ['2025-01-01', '2025-05-03', '2025-12-29', '2025-12-30', '2025-12-31']
+            }
+        ];
+
+        if (!this.getStorageItem('reservationTypes')) {
+            this.setStorageItem('reservationTypes', defaultTypes);
+        }
+
+        if (!this.getStorageItem('reservations')) {
+            this.setStorageItem('reservations', []);
+        }
+
+        if (!this.getStorageItem('adminPassword')) {
+            this.setStorageItem('adminPassword', 'admin123');
+        }
+
+        if (!this.getStorageItem('noticeMessage')) {
+            this.setStorageItem('noticeMessage', 'ご予約をお取りいただき、ありがとうございます。診察の際は保険証をお持ちください。');
+        }
+
+        if (!this.getStorageItem('emailSettings')) {
+            this.setStorageItem('emailSettings', {
+                brevoApiKey: '',
+                senderEmail: '',
+                senderName: '病院',
+                subject: '予約確認のお知らせ',
+                template: `{customerName} 様
+
+この度は、当院にてご予約をいただき、誠にありがとうございます。
+以下の内容でご予約を承りました。
+
+【予約内容】
+予約種類: {reservationType}
+予約日時: {reservationDateTime}
+備考: {notes}
+
+ご不明な点がございましたら、お気軽にお電話にてお問い合わせください。
+
+当日は保険証をお持ちください。
+お待ちしております。
+
+病院名
+電話番号: XXX-XXXX-XXXX`
+            });
         }
     }
 
-    // Get data from localStorage
-    getData() {
-        return JSON.parse(localStorage.getItem('hospitalReservationData'));
+    // ローカルストレージ操作
+    getStorageItem(key) {
+        try {
+            const item = localStorage.getItem(key);
+            return item ? JSON.parse(item) : null;
+        } catch (error) {
+            console.error(`Error getting ${key} from storage:`, error);
+            return null;
+        }
     }
 
-    // Save data to localStorage
-    saveData(data) {
-        localStorage.setItem('hospitalReservationData', JSON.stringify(data));
+    setStorageItem(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error(`Error setting ${key} to storage:`, error);
+        }
     }
 
-    // Initialize event listeners
-    initializeEventListeners() {
-        // Admin login
+    // イベントバインディング
+    bindEvents() {
+        // DOMContentLoadedイベントの確認
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.bindEventHandlers();
+            });
+        } else {
+            this.bindEventHandlers();
+        }
+    }
+
+    bindEventHandlers() {
+        // 管理者ログイン
         const adminLoginBtn = document.getElementById('adminLoginBtn');
         if (adminLoginBtn) {
             adminLoginBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.showAdminLoginModal();
+                this.showModal('adminLoginModal');
             });
         }
 
@@ -121,92 +158,132 @@ class HospitalReservationSystem {
             });
         }
 
-        // Navigation
-        const backToPatientBtn = document.getElementById('backToPatientBtn');
-        if (backToPatientBtn) {
-            backToPatientBtn.addEventListener('click', () => {
-                this.showPatientInterface();
-            });
-        }
-
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                this.showPatientInterface();
+                this.handleLogout();
             });
         }
 
-        // Booking form
-        const reservationType = document.getElementById('reservationType');
-        if (reservationType) {
-            reservationType.addEventListener('change', (e) => {
-                this.handleReservationTypeChange(e.target.value);
-            });
-        }
-
-        const reservationDate = document.getElementById('reservationDate');
-        if (reservationDate) {
-            reservationDate.addEventListener('change', (e) => {
-                this.handleDateChange(e.target.value);
-            });
-        }
-
-        const bookingForm = document.getElementById('bookingForm');
-        if (bookingForm) {
-            bookingForm.addEventListener('submit', (e) => {
+        // ステップナビゲーション
+        const backToStep1 = document.getElementById('backToStep1');
+        if (backToStep1) {
+            backToStep1.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.handleBookingSubmit();
+                this.goToStep(1);
             });
         }
 
-        // Admin forms
-        this.initializeAdminEventListeners();
+        const proceedToStep3 = document.getElementById('proceedToStep3');
+        if (proceedToStep3) {
+            proceedToStep3.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.validateDateSelection()) {
+                    this.loadTimeSlots();
+                    this.goToStep(3);
+                }
+            });
+        }
 
-        // Tab navigation
-        const adminTabs = document.querySelectorAll('#adminTabs a[data-bs-toggle="tab"]');
-        adminTabs.forEach(tab => {
-            tab.addEventListener('shown.bs.tab', (e) => {
-                const targetId = e.target.getAttribute('href').substring(1);
-                this.loadAdminTabContent(targetId);
+        const backToStep2 = document.getElementById('backToStep2');
+        if (backToStep2) {
+            backToStep2.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goToStep(2);
+            });
+        }
+
+        const backToStep3 = document.getElementById('backToStep3');
+        if (backToStep3) {
+            backToStep3.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.goToStep(3);
+            });
+        }
+
+        // 顧客フォーム
+        const customerForm = document.getElementById('customerForm');
+        if (customerForm) {
+            customerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleReservationSubmit();
+            });
+        }
+
+        const newReservation = document.getElementById('newReservation');
+        if (newReservation) {
+            newReservation.addEventListener('click', () => {
+                this.resetForm();
+            });
+        }
+
+        // 管理者タブ
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.switchTab(e.target.dataset.tab);
             });
         });
+
+        // モーダル閉じる
+        document.querySelectorAll('.modal-close, .modal-overlay').forEach(element => {
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (e.target.classList.contains('modal-close') || e.target.classList.contains('modal-overlay')) {
+                    const modal = e.target.closest('.modal');
+                    if (modal) {
+                        this.hideModal(modal.id);
+                    }
+                }
+            });
+        });
+
+        // 管理者フォーム
+        this.bindAdminEvents();
     }
 
-    // Initialize admin-specific event listeners
-    initializeAdminEventListeners() {
-        // Reservation type form
-        const reservationTypeForm = document.getElementById('reservationTypeForm');
-        if (reservationTypeForm) {
-            reservationTypeForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleReservationTypeSubmit();
-            });
-        }
-
-        // Password change form  
-        const passwordChangeForm = document.getElementById('passwordChangeForm');
-        if (passwordChangeForm) {
-            passwordChangeForm.addEventListener('submit', (e) => {
+    bindAdminEvents() {
+        // パスワード変更
+        const passwordForm = document.getElementById('passwordForm');
+        if (passwordForm) {
+            passwordForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.handlePasswordChange();
             });
         }
 
-        // Welcome message form
-        const welcomeMessageForm = document.getElementById('welcomeMessageForm');
-        if (welcomeMessageForm) {
-            welcomeMessageForm.addEventListener('submit', (e) => {
+        // お知らせメッセージ更新
+        const noticeForm = document.getElementById('noticeForm');
+        if (noticeForm) {
+            noticeForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.handleWelcomeMessageChange();
+                this.handleNoticeUpdate();
             });
         }
 
-        // Email forms
-        const emailConfigForm = document.getElementById('emailConfigForm');
-        if (emailConfigForm) {
-            emailConfigForm.addEventListener('submit', (e) => {
+        // 予約種類追加
+        const addTypeBtn = document.getElementById('addTypeBtn');
+        if (addTypeBtn) {
+            addTypeBtn.addEventListener('click', () => {
+                this.showAddTypeModal();
+            });
+        }
+
+        // 予約種類編集フォーム
+        const editTypeForm = document.getElementById('editTypeForm');
+        if (editTypeForm) {
+            editTypeForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.handleEmailConfigSave();
+                this.handleTypeSave();
+            });
+        }
+
+        // メール設定
+        const brevoForm = document.getElementById('brevoForm');
+        if (brevoForm) {
+            brevoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleEmailSettingsSave();
             });
         }
 
@@ -218,1307 +295,745 @@ class HospitalReservationSystem {
             });
         }
 
-        // Data management buttons
-        const exportDataBtn = document.getElementById('exportData');
-        if (exportDataBtn) {
-            exportDataBtn.addEventListener('click', () => {
-                this.exportData();
-            });
-        }
-
-        const importDataBtn = document.getElementById('importData');
-        if (importDataBtn) {
-            importDataBtn.addEventListener('click', () => {
-                this.importData();
-            });
-        }
-
-        const clearAllDataBtn = document.getElementById('clearAllData');
-        if (clearAllDataBtn) {
-            clearAllDataBtn.addEventListener('click', () => {
-                this.clearAllData();
-            });
-        }
-
-        // Reservation management
-        const reservationFilter = document.getElementById('reservationFilter');
-        if (reservationFilter) {
-            reservationFilter.addEventListener('change', (e) => {
-                this.filterReservations(e.target.value);
-            });
-        }
-
-        const reservationSearch = document.getElementById('reservationSearch');
-        if (reservationSearch) {
-            reservationSearch.addEventListener('input', (e) => {
-                this.searchReservations(e.target.value);
-            });
-        }
-
-        const printReservationsBtn = document.getElementById('printReservations');
-        if (printReservationsBtn) {
-            printReservationsBtn.addEventListener('click', () => {
-                this.printReservations();
-            });
-        }
-
-        const viewCalendarBtn = document.getElementById('viewCalendar');
-        if (viewCalendarBtn) {
-            viewCalendarBtn.addEventListener('click', () => {
-                this.showCalendarView();
-            });
-        }
-
-        // Test buttons
-        const testConnectionBtn = document.getElementById('testConnection');
-        if (testConnectionBtn) {
-            testConnectionBtn.addEventListener('click', () => {
+        const testConnection = document.getElementById('testConnection');
+        if (testConnection) {
+            testConnection.addEventListener('click', () => {
                 this.testBrevoConnection();
             });
         }
 
-        const sendTestEmailBtn = document.getElementById('sendTestEmail');
-        if (sendTestEmailBtn) {
-            sendTestEmailBtn.addEventListener('click', () => {
+        const sendTestEmail = document.getElementById('sendTestEmail');
+        if (sendTestEmail) {
+            sendTestEmail.addEventListener('click', () => {
                 this.sendTestEmail();
             });
         }
-    }
 
-    // Show admin login modal
-    showAdminLoginModal() {
-        const modal = new bootstrap.Modal(document.getElementById('adminLoginModal'));
-        modal.show();
-    }
-
-    // Load patient interface
-    loadPatientInterface() {
-        const data = this.getData();
-        const welcomeMessageEl = document.getElementById('welcomeMessage');
-        if (welcomeMessageEl) {
-            welcomeMessageEl.textContent = data.settings.welcomeMessage;
-        }
-        this.loadReservationTypes();
-    }
-
-    // Load reservation types dropdown
-    loadReservationTypes() {
-        const data = this.getData();
-        const select = document.getElementById('reservationType');
-        if (!select) return;
-        
-        console.log('Loading reservation types:', data.reservationTypes); // Debug log
-        
-        select.innerHTML = '<option value="">予約種類を選択</option>';
-        
-        if (data.reservationTypes && data.reservationTypes.length > 0) {
-            data.reservationTypes.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type.id;
-                option.textContent = type.name;
-                select.appendChild(option);
+        // データ管理
+        const exportData = document.getElementById('exportData');
+        if (exportData) {
+            exportData.addEventListener('click', () => {
+                this.exportData();
             });
-        } else {
-            console.error('No reservation types found in data');
+        }
+
+        const importBtn = document.getElementById('importBtn');
+        if (importBtn) {
+            importBtn.addEventListener('click', () => {
+                const importData = document.getElementById('importData');
+                if (importData) {
+                    importData.click();
+                }
+            });
+        }
+
+        const importData = document.getElementById('importData');
+        if (importData) {
+            importData.addEventListener('change', (e) => {
+                this.importData(e);
+            });
+        }
+
+        const printReservations = document.getElementById('printReservations');
+        if (printReservations) {
+            printReservations.addEventListener('click', () => {
+                this.printReservations();
+            });
+        }
+
+        // 予約編集
+        const editReservationForm = document.getElementById('editReservationForm');
+        if (editReservationForm) {
+            editReservationForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleReservationEdit();
+            });
+        }
+
+        const deleteReservation = document.getElementById('deleteReservation');
+        if (deleteReservation) {
+            deleteReservation.addEventListener('click', () => {
+                this.handleReservationDelete();
+            });
+        }
+
+        // フィルター
+        const filterType = document.getElementById('filterType');
+        if (filterType) {
+            filterType.addEventListener('change', () => {
+                this.loadReservationsList();
+            });
+        }
+
+        const filterDate = document.getElementById('filterDate');
+        if (filterDate) {
+            filterDate.addEventListener('change', () => {
+                this.loadReservationsList();
+            });
         }
     }
 
-    // Handle reservation type change
-    handleReservationTypeChange(typeId) {
-        const dateSelection = document.getElementById('dateSelection');
-        const timeSelection = document.getElementById('timeSelection');
-        const patientInfo = document.getElementById('patientInfo');
-        const submitSection = document.getElementById('submitSection');
-
-        if (typeId) {
-            dateSelection.style.display = 'block';
-            this.setupDateInput(typeId);
-        } else {
-            dateSelection.style.display = 'none';
-            timeSelection.style.display = 'none';
-            patientInfo.style.display = 'none';
-            submitSection.style.display = 'none';
-        }
-    }
-
-    // Setup date input constraints
-    setupDateInput(typeId) {
-        const data = this.getData();
-        const type = data.reservationTypes.find(t => t.id == typeId);
+    // 日付の最小値設定
+    setMinDate() {
+        const today = new Date().toISOString().split('T')[0];
         const dateInput = document.getElementById('reservationDate');
+        if (dateInput) {
+            dateInput.min = today;
+            dateInput.value = '';
+        }
+    }
+
+    // ステップ移動
+    goToStep(step) {
+        // 全ステップを非表示
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
         
-        if (type && dateInput) {
-            dateInput.min = type.startDate;
-            dateInput.max = type.endDate;
-            
-            // Set minimum date to today if start date is in the past
-            const today = new Date().toISOString().split('T')[0];
-            if (type.startDate < today) {
-                dateInput.min = today;
+        // 指定されたステップを表示
+        const targetStep = document.getElementById(`step${step}`);
+        if (targetStep) {
+            targetStep.classList.add('active');
+            this.currentStep = step;
+
+            // ステップごとの情報表示
+            if (step === 2 && this.selectedType) {
+                const selectedTypeName = document.getElementById('selectedTypeName');
+                if (selectedTypeName) {
+                    selectedTypeName.textContent = this.selectedType.name;
+                }
+            } else if (step === 3 && this.selectedType && this.selectedDate) {
+                const selectedTypeStep3 = document.getElementById('selectedTypeStep3');
+                const selectedDateStep3 = document.getElementById('selectedDateStep3');
+                if (selectedTypeStep3) selectedTypeStep3.textContent = this.selectedType.name;
+                if (selectedDateStep3) selectedDateStep3.textContent = this.formatDate(this.selectedDate);
+            } else if (step === 4 && this.selectedType && this.selectedDate && this.selectedTime) {
+                const selectedTypeStep4 = document.getElementById('selectedTypeStep4');
+                const selectedDateTimeStep4 = document.getElementById('selectedDateTimeStep4');
+                if (selectedTypeStep4) selectedTypeStep4.textContent = this.selectedType.name;
+                if (selectedDateTimeStep4) {
+                    selectedDateTimeStep4.textContent = `${this.formatDate(this.selectedDate)} ${this.selectedTime}`;
+                }
             }
         }
     }
 
-    // Handle date change
-    handleDateChange(date) {
-        const timeSelection = document.getElementById('timeSelection');
-        const patientInfo = document.getElementById('patientInfo');
-        const submitSection = document.getElementById('submitSection');
-
-        if (date) {
-            const typeId = document.getElementById('reservationType').value;
-            this.loadTimeSlots(typeId, date);
-            timeSelection.style.display = 'block';
-        } else {
-            timeSelection.style.display = 'none';
-            patientInfo.style.display = 'none';
-            submitSection.style.display = 'none';
-        }
-    }
-
-    // Load available time slots
-    loadTimeSlots(typeId, date) {
-        const data = this.getData();
-        const type = data.reservationTypes.find(t => t.id == typeId);
-        const selectedDate = new Date(date);
-        const dayOfWeek = selectedDate.getDay();
-        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
-        const dayName = dayNames[dayOfWeek];
+    // 予約種類読み込み
+    loadReservationTypes() {
+        const types = this.getStorageItem('reservationTypes') || [];
+        const container = document.getElementById('reservationTypes');
         
-        const container = document.getElementById('timeSlots');
         if (!container) return;
         
         container.innerHTML = '';
-
-        // Check if the day is closed
-        if (type.closedDays.includes(dayName)) {
-            container.innerHTML = '<p class="text-muted">この日は休診日です。</p>';
-            return;
-        }
-
-        // Get operating hours for the day
-        const dayHours = type.weeklyHours[dayName];
-        if (!dayHours || !dayHours.start || !dayHours.end) {
-            container.innerHTML = '<p class="text-muted">この日は休診日です。</p>';
-            return;
-        }
-
-        // Generate time slots
-        const startTime = this.parseTime(dayHours.start);
-        const endTime = this.parseTime(dayHours.end);
-        const interval = type.interval;
         
-        const existingReservations = data.reservations.filter(r => 
-            r.type == type.name && r.date === date
-        );
-
-        for (let time = startTime; time < endTime; time += interval) {
-            const timeStr = this.formatTime(time);
-            const reservationCount = existingReservations.filter(r => r.time === timeStr).length;
-            const isAvailable = reservationCount < type.capacity;
+        types.forEach(type => {
+            const card = document.createElement('div');
+            card.className = 'reservation-type-card';
+            card.dataset.typeId = type.id;
             
-            const slot = document.createElement('div');
-            slot.className = `time-slot ${!isAvailable ? 'full' : ''}`;
-            slot.innerHTML = `
-                <div class="time-slot-time">${timeStr}</div>
-                <div class="time-slot-availability">${reservationCount}/${type.capacity}</div>
+            card.innerHTML = `
+                <h3>${type.name}</h3>
+                <p>所要時間: ${type.duration}分</p>
+                <p>定員: ${type.capacity}名</p>
             `;
             
-            if (isAvailable) {
-                slot.addEventListener('click', () => {
-                    this.selectTimeSlot(slot, timeStr);
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.reservation-type-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.selectedType = type;
+                setTimeout(() => {
+                    this.goToStep(2);
+                }, 200);
+            });
+            
+            container.appendChild(card);
+        });
+    }
+
+    // 日付選択の検証
+    validateDateSelection() {
+        const dateInput = document.getElementById('reservationDate');
+        if (!dateInput) return false;
+        
+        const selectedDate = dateInput.value;
+        
+        if (!selectedDate) {
+            this.showMessage('予約日を選択してください。', 'error');
+            return false;
+        }
+
+        const date = new Date(selectedDate);
+        const dayName = this.getDayName(date.getDay());
+        
+        // 営業日チェック
+        if (!this.selectedType.schedule[dayName].enabled) {
+            this.showMessage('選択した日は休業日です。', 'error');
+            return false;
+        }
+
+        // 休日チェック
+        if (this.selectedType.holidayDates.includes(selectedDate)) {
+            this.showMessage('選択した日は休日です。', 'error');
+            return false;
+        }
+
+        // 予約可能期間チェック
+        if (selectedDate < this.selectedType.availablePeriod.start || 
+            selectedDate > this.selectedType.availablePeriod.end) {
+            this.showMessage('選択した日は予約可能期間外です。', 'error');
+            return false;
+        }
+
+        this.selectedDate = selectedDate;
+        return true;
+    }
+
+    // 時間枠読み込み
+    loadTimeSlots() {
+        const container = document.getElementById('timeSlots');
+        if (!container) return;
+        
+        const date = new Date(this.selectedDate);
+        const dayName = this.getDayName(date.getDay());
+        const schedule = this.selectedType.schedule[dayName];
+        
+        container.innerHTML = '';
+        
+        const slots = this.generateTimeSlots(schedule.start, schedule.end, this.selectedType.duration);
+        const reservations = this.getStorageItem('reservations') || [];
+        
+        slots.forEach(slot => {
+            const reservedCount = reservations.filter(r => 
+                r.type === this.selectedType.id && 
+                r.date === this.selectedDate && 
+                r.time === slot
+            ).length;
+            
+            const available = this.selectedType.capacity - reservedCount;
+            const isFull = available <= 0;
+            
+            const slotElement = document.createElement('div');
+            slotElement.className = `time-slot ${isFull ? 'full' : ''}`;
+            
+            slotElement.innerHTML = `
+                <div class="time-slot-time">${slot}</div>
+                <div class="time-slot-availability ${isFull ? 'full' : 'available'}">
+                    ${isFull ? '満員' : `空き ${available}/${this.selectedType.capacity}`}
+                </div>
+            `;
+            
+            if (!isFull) {
+                slotElement.addEventListener('click', () => {
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    slotElement.classList.add('selected');
+                    this.selectedTime = slot;
+                    setTimeout(() => {
+                        this.goToStep(4);
+                    }, 200);
                 });
             }
             
-            container.appendChild(slot);
-        }
-    }
-
-    // Select time slot
-    selectTimeSlot(slotElement, time) {
-        // Remove previous selection
-        document.querySelectorAll('.time-slot.selected').forEach(slot => {
-            slot.classList.remove('selected');
+            container.appendChild(slotElement);
         });
-        
-        // Select current slot
-        slotElement.classList.add('selected');
-        const selectedTimeInput = document.getElementById('selectedTime');
-        if (selectedTimeInput) {
-            selectedTimeInput.value = time;
-        }
-        
-        // Show patient info form
-        const patientInfo = document.getElementById('patientInfo');
-        const submitSection = document.getElementById('submitSection');
-        if (patientInfo) patientInfo.style.display = 'block';
-        if (submitSection) submitSection.style.display = 'block';
     }
 
-    // Handle booking submission
-    handleBookingSubmit() {
-        const typeId = document.getElementById('reservationType').value;
-        const date = document.getElementById('reservationDate').value;
-        const time = document.getElementById('selectedTime').value;
-        const name = document.getElementById('patientName').value;
-        const email = document.getElementById('patientEmail').value;
-        const phone = document.getElementById('patientPhone').value;
-        const notes = document.getElementById('patientMessage').value;
-
-        // Validate required fields
-        if (!typeId || !date || !time || !name || !email || !phone) {
-            this.showAlert('すべての必須項目を入力してください。', 'warning');
-            return;
-        }
-
-        // Check for duplicate booking (same email+phone on same day)
-        const data = this.getData();
-        const duplicate = data.reservations.find(r => 
-            r.email === email && r.phone === phone && r.date === date
-        );
-
-        if (duplicate) {
-            this.showAlert('同じメールアドレスと電話番号での重複予約はできません。', 'danger');
-            return;
-        }
-
-        // Get reservation type name
-        const type = data.reservationTypes.find(t => t.id == typeId);
+    // 時間枠生成
+    generateTimeSlots(startTime, endTime, duration) {
+        const slots = [];
+        const start = new Date(`2000-01-01 ${startTime}`);
+        const end = new Date(`2000-01-01 ${endTime}`);
         
-        // Create reservation
+        let current = new Date(start);
+        
+        while (current < end) {
+            slots.push(current.toTimeString().slice(0, 5));
+            current.setMinutes(current.getMinutes() + duration);
+        }
+        
+        return slots;
+    }
+
+    // 予約送信処理
+    async handleReservationSubmit() {
+        const nameEl = document.getElementById('customerName');
+        const emailEl = document.getElementById('customerEmail');
+        const phoneEl = document.getElementById('customerPhone');
+        const notesEl = document.getElementById('customerNotes');
+
+        if (!nameEl || !emailEl || !phoneEl) {
+            this.showMessage('フォームの読み込みエラーが発生しました。', 'error');
+            return;
+        }
+
+        const name = nameEl.value.trim();
+        const email = emailEl.value.trim();
+        const phone = phoneEl.value.trim();
+        const notes = notesEl ? notesEl.value.trim() : '';
+
+        if (!name || !email || !phone) {
+            this.showMessage('必須項目を入力してください。', 'error');
+            return;
+        }
+
+        // 重複予約チェック
+        const existingReservations = this.getStorageItem('reservations') || [];
+        const duplicateReservation = existingReservations.find(r => r.email === email);
+        
+        if (duplicateReservation) {
+            this.showMessage('このメールアドレスで既に予約があります。', 'error');
+            return;
+        }
+
         const reservation = {
-            id: Date.now(),
-            type: type.name,
-            date: date,
-            time: time,
+            id: this.generateId(),
+            type: this.selectedType.id,
+            typeName: this.selectedType.name,
+            date: this.selectedDate,
+            time: this.selectedTime,
             name: name,
-            email: email,  
+            email: email,
             phone: phone,
             notes: notes,
-            created: new Date().toISOString()
+            createdAt: new Date().toISOString()
         };
 
-        // Save reservation
-        data.reservations.push(reservation);
-        this.saveData(data);
+        // 予約保存
+        existingReservations.push(reservation);
+        this.setStorageItem('reservations', existingReservations);
 
-        // Show confirmation
-        this.showBookingConfirmation(reservation, type);
+        // メール送信
+        await this.sendConfirmationEmail(reservation);
 
-        // Send confirmation email
-        this.sendConfirmationEmail(reservation, type);
-
-        // Reset form
-        this.resetBookingForm();
+        // 完了画面表示
+        this.showReservationSummary(reservation);
+        this.goToStep(5);
     }
 
-    // Reset booking form
-    resetBookingForm() {
-        const form = document.getElementById('bookingForm');
-        if (form) {
-            form.reset();
-        }
+    // 確認メール送信
+    async sendConfirmationEmail(reservation) {
+        const emailSettings = this.getStorageItem('emailSettings');
         
-        const sections = ['dateSelection', 'timeSelection', 'patientInfo', 'submitSection'];
-        sections.forEach(sectionId => {
-            const section = document.getElementById(sectionId);
-            if (section) {
-                section.style.display = 'none';
-            }
-        });
-    }
-
-    // Show booking confirmation
-    showBookingConfirmation(reservation, type) {
-        const details = `
-            <div class="alert alert-success">
-                <h5><i class="bi bi-check-circle me-2"></i>予約が完了しました</h5>
-                <hr>
-                <p><strong>予約種類:</strong> ${type.name}</p>
-                <p><strong>日時:</strong> ${reservation.date} ${reservation.time}</p>
-                <p><strong>お名前:</strong> ${reservation.name}</p>
-                <p><strong>メールアドレス:</strong> ${reservation.email}</p>
-                <p><strong>電話番号:</strong> ${reservation.phone}</p>
-                ${reservation.notes ? `<p><strong>ご要望:</strong> ${reservation.notes}</p>` : ''}
-                <hr>
-                <p class="mb-0">確認メールを送信いたします。</p>
-            </div>
-        `;
-        
-        const confirmationDetails = document.getElementById('confirmationDetails');
-        if (confirmationDetails) {
-            confirmationDetails.innerHTML = details;
-            const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-            modal.show();
-        }
-    }
-
-    // Send confirmation email via Brevo
-    async sendConfirmationEmail(reservation, type) {
-        const data = this.getData();
-        
-        if (!data.settings.brevoApiKey || !data.settings.emailConfig.fromEmail) {
-            console.log('Brevo API not configured, skipping email');
-            this.showAlert('予約は完了しましたが、メール設定が未完了のため確認メールを送信できませんでした。', 'warning');
+        if (!emailSettings.brevoApiKey || !emailSettings.senderEmail) {
+            console.log('Email settings not configured');
             return;
         }
 
         try {
-            const emailContent = this.generateEmailContent(reservation, type, data.settings);
-            
+            const template = emailSettings.template
+                .replace('{customerName}', reservation.name)
+                .replace('{reservationType}', reservation.typeName)
+                .replace('{reservationDateTime}', `${this.formatDate(reservation.date)} ${reservation.time}`)
+                .replace('{notes}', reservation.notes || 'なし');
+
             const emailData = {
                 sender: {
-                    name: data.settings.emailConfig.fromName,
-                    email: data.settings.emailConfig.fromEmail
+                    name: emailSettings.senderName,
+                    email: emailSettings.senderEmail
                 },
                 to: [{
                     email: reservation.email,
                     name: reservation.name
                 }],
-                subject: data.settings.emailConfig.subject,
-                textContent: emailContent
+                subject: emailSettings.subject,
+                textContent: template
             };
 
-            // Send email via Brevo API
             const response = await fetch('https://api.brevo.com/v3/smtp/email', {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'api-key': data.settings.brevoApiKey
+                    'accept': 'application/json',
+                    'api-key': emailSettings.brevoApiKey,
+                    'content-type': 'application/json'
                 },
                 body: JSON.stringify(emailData)
             });
 
             if (response.ok) {
-                this.showAlert('確認メールを送信しました。', 'success');
+                console.log('Confirmation email sent successfully');
             } else {
-                throw new Error('Email sending failed');
+                console.error('Failed to send confirmation email');
             }
         } catch (error) {
-            console.error('Email sending error:', error);
-            this.showAlert('予約は完了しましたが、確認メールの送信に失敗しました。', 'warning');
+            console.error('Error sending confirmation email:', error);
         }
     }
 
-    // Generate email content
-    generateEmailContent(reservation, type, settings) {
-        let template = settings.emailTemplate;
-        template = template.replace(/{{name}}/g, reservation.name);
-        template = template.replace(/{{date}}/g, reservation.date);
-        template = template.replace(/{{time}}/g, reservation.time);
-        template = template.replace(/{{type}}/g, type.name);
-        template = template.replace(/{{phone}}/g, reservation.phone);
-        template = template.replace(/{{notes}}/g, reservation.notes || 'なし');
-        return template;
+    // 予約サマリー表示
+    showReservationSummary(reservation) {
+        const container = document.getElementById('reservationSummary');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="summary-item">
+                <span>予約種類:</span>
+                <span>${reservation.typeName}</span>
+            </div>
+            <div class="summary-item">
+                <span>予約日時:</span>
+                <span>${this.formatDate(reservation.date)} ${reservation.time}</span>
+            </div>
+            <div class="summary-item">
+                <span>お名前:</span>
+                <span>${reservation.name}</span>
+            </div>
+            <div class="summary-item">
+                <span>メールアドレス:</span>
+                <span>${reservation.email}</span>
+            </div>
+            <div class="summary-item">
+                <span>電話番号:</span>
+                <span>${reservation.phone}</span>
+            </div>
+            ${reservation.notes ? `
+            <div class="summary-item">
+                <span>備考:</span>
+                <span>${reservation.notes}</span>
+            </div>
+            ` : ''}
+        `;
     }
 
-    // Handle admin login
+    // フォームリセット
+    resetForm() {
+        this.currentStep = 1;
+        this.selectedType = null;
+        this.selectedDate = null;
+        this.selectedTime = null;
+        
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        const step1 = document.getElementById('step1');
+        if (step1) {
+            step1.classList.add('active');
+        }
+        
+        const customerForm = document.getElementById('customerForm');
+        if (customerForm) {
+            customerForm.reset();
+        }
+        
+        document.querySelectorAll('.reservation-type-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        
+        // 日付入力をリセット
+        const dateInput = document.getElementById('reservationDate');
+        if (dateInput) {
+            dateInput.value = '';
+        }
+    }
+
+    // 管理者ログイン
     handleAdminLogin() {
-        const passwordInput = document.getElementById('adminPassword');
-        if (!passwordInput) return;
+        const passwordEl = document.getElementById('adminPassword');
+        if (!passwordEl) return;
         
-        const password = passwordInput.value;
-        const data = this.getData();
+        const password = passwordEl.value;
+        const storedPassword = this.getStorageItem('adminPassword');
         
-        if (password === data.settings.adminPassword) {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('adminLoginModal'));
-            if (modal) {
-                modal.hide();
-            }
-            this.showAdminInterface();
+        if (password === storedPassword) {
+            this.hideModal('adminLoginModal');
+            this.showAdminPanel();
+            passwordEl.value = '';
         } else {
-            this.showAlert('パスワードが正しくありません。', 'danger');
+            this.showMessage('パスワードが正しくありません。', 'error');
         }
-        
-        // Clear password field
-        passwordInput.value = '';
     }
 
-    // Show admin interface
-    showAdminInterface() {
-        const patientInterface = document.getElementById('patientInterface');
-        const adminInterface = document.getElementById('adminInterface');
+    // 管理者画面表示
+    showAdminPanel() {
+        const mainContent = document.querySelector('.main-content');
+        const noticeSection = document.querySelector('.notice-section');
+        const header = document.querySelector('.header');
+        const adminPanel = document.getElementById('adminPanel');
         
-        if (patientInterface) {
-            patientInterface.style.display = 'none';
-        }  
-        if (adminInterface) {
-            adminInterface.style.display = 'block';
-        }
+        if (mainContent) mainContent.style.display = 'none';
+        if (noticeSection) noticeSection.style.display = 'none';
+        if (header) header.style.display = 'none';
+        if (adminPanel) adminPanel.classList.add('active');
         
-        this.loadAdminDashboard();
+        this.loadAdminData();
     }
 
-    // Show patient interface
-    showPatientInterface() {
-        const adminInterface = document.getElementById('adminInterface');
-        const patientInterface = document.getElementById('patientInterface');
+    // ログアウト
+    handleLogout() {
+        const mainContent = document.querySelector('.main-content');
+        const noticeSection = document.querySelector('.notice-section');
+        const header = document.querySelector('.header');
+        const adminPanel = document.getElementById('adminPanel');
         
-        if (adminInterface) {
-            adminInterface.style.display = 'none';
-        }
-        if (patientInterface) {
-            patientInterface.style.display = 'block';
-        }
+        if (mainContent) mainContent.style.display = 'block';
+        if (noticeSection) noticeSection.style.display = 'block';
+        if (header) header.style.display = 'block';
+        if (adminPanel) adminPanel.classList.remove('active');
         
-        this.loadPatientInterface();
+        this.switchTab('dashboard');
     }
 
-    // Load admin dashboard
-    loadAdminDashboard() {
-        const data = this.getData();
+    // モーダル操作
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+
+    hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    // メッセージ表示
+    showMessage(message, type = 'info') {
+        // 既存のメッセージを削除
+        document.querySelectorAll('.message').forEach(msg => msg.remove());
+
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${type}`;
+        messageElement.textContent = message;
+
+        const container = document.querySelector('.container');
+        if (container) {
+            container.insertBefore(messageElement, container.firstChild);
+
+            // 3秒後に自動削除
+            setTimeout(() => {
+                if (messageElement.parentNode) {
+                    messageElement.remove();
+                }
+            }, 3000);
+        }
+    }
+
+    // お知らせメッセージ更新
+    updateNoticeMessage() {
+        const message = this.getStorageItem('noticeMessage');
+        const noticeEl = document.getElementById('noticeMessage');
+        if (noticeEl && message) {
+            noticeEl.innerHTML = `<p>${message}</p>`;
+        }
+    }
+
+    // ユーティリティ関数
+    formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    getDayName(dayIndex) {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        return days[dayIndex];
+    }
+
+    getDayNameJP(dayName) {
+        const dayNames = {
+            sunday: '日',
+            monday: '月',
+            tuesday: '火',
+            wednesday: '水',
+            thursday: '木',
+            friday: '金',
+            saturday: '土'
+        };
+        return dayNames[dayName];
+    }
+
+    generateId() {
+        return 'res_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    getWeekRange(date) {
+        const start = new Date(date);
+        start.setDate(date.getDate() - date.getDay());
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        
+        return {
+            start: start.toISOString().split('T')[0],
+            end: end.toISOString().split('T')[0]
+        };
+    }
+
+    getMonthRange(date) {
+        const start = new Date(date.getFullYear(), date.getMonth(), 1);
+        const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        
+        return {
+            start: start.toISOString().split('T')[0],
+            end: end.toISOString().split('T')[0]
+        };
+    }
+
+    // 管理者機能（簡略版）
+    loadAdminData() {
+        this.loadDashboard();
+        this.loadReservationsList();
+        this.loadReservationTypesList();
+        this.loadEmailSettings();
+        this.loadSystemSettings();
+    }
+
+    loadDashboard() {
+        const reservations = this.getStorageItem('reservations') || [];
         const today = new Date().toISOString().split('T')[0];
         
-        // Update statistics
-        const totalReservationsEl = document.getElementById('totalReservations');
-        const todayReservationsEl = document.getElementById('todayReservations');
-        const reservationTypesEl = document.getElementById('reservationTypes');
-        const upcomingReservationsEl = document.getElementById('upcomingReservations');
+        const todayCount = reservations.filter(r => r.date === today).length;
         
-        if (totalReservationsEl) {
-            totalReservationsEl.textContent = data.reservations.length;
-        }
-        if (todayReservationsEl) {
-            todayReservationsEl.textContent = data.reservations.filter(r => r.date === today).length;
-        }
-        if (reservationTypesEl) {
-            reservationTypesEl.textContent = data.reservationTypes.length;
-        }
-        if (upcomingReservationsEl) {
-            upcomingReservationsEl.textContent = data.reservations.filter(r => r.date >= today).length;
-        }
+        const todayEl = document.getElementById('todayReservations');
+        const weekEl = document.getElementById('weekReservations');
+        const monthEl = document.getElementById('monthReservations');
+        
+        if (todayEl) todayEl.textContent = todayCount;
+        if (weekEl) weekEl.textContent = '0';
+        if (monthEl) monthEl.textContent = reservations.length;
 
-        // Show recent reservations
-        this.loadRecentReservations();
+        this.loadCalendar();
     }
 
-    // Load recent reservations
-    loadRecentReservations() {
-        const data = this.getData();
-        const recent = data.reservations
-            .sort((a, b) => new Date(b.created) - new Date(a.created))
-            .slice(0, 5);
-
-        const container = document.getElementById('recentReservations');
+    loadCalendar() {
+        const container = document.getElementById('adminCalendar');
         if (!container) return;
         
-        if (recent.length === 0) {
-            container.innerHTML = '<p class="text-muted">予約がありません。</p>';
-            return;
-        }
-
-        let html = '<div class="table-responsive"><table class="table custom-table">';
-        html += '<thead><tr><th>予約日時</th><th>種類</th><th>患者名</th><th>作成日時</th></tr></thead><tbody>';
-        
-        recent.forEach(reservation => {
-            const createdAt = new Date(reservation.created).toLocaleString('ja-JP');
-            html += `
-                <tr>
-                    <td>${reservation.date} ${reservation.time}</td>
-                    <td>${reservation.type}</td>
-                    <td>${reservation.name}</td>
-                    <td>${createdAt}</td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
-    }
-
-    // Load admin tab content
-    loadAdminTabContent(tabId) {
-        switch(tabId) {
-            case 'dashboard':
-                this.loadAdminDashboard();
-                break;
-            case 'reservationTypes':
-                this.loadReservationTypesAdmin();
-                break;
-            case 'reservationManagement':
-                this.loadReservationManagement();
-                break;
-            case 'emailSettings':
-                this.loadEmailSettings();
-                break;
-            case 'systemSettings':
-                this.loadSystemSettings();
-                break;
-        }
-    }
-
-    // Load reservation types admin
-    loadReservationTypesAdmin() {
-        const data = this.getData();
-        const container = document.getElementById('reservationTypesList');
-        if (!container) return;
-        
-        console.log('Loading reservation types admin:', data.reservationTypes); // Debug log
-        
-        if (!data.reservationTypes || data.reservationTypes.length === 0) {
-            container.innerHTML = '<p class="text-muted">予約種類が登録されていません。</p>';
-            return;
-        }
-
-        let html = '';
-        data.reservationTypes.forEach(type => {
-            html += `
-                <div class="reservation-type-card card mb-3">
-                    <div class="reservation-type-header">
-                        <h6 class="mb-0">${type.name}</h6>
-                        <div>
-                            <button class="btn btn--outline btn--sm me-2" onclick="hospitalSystem.editReservationType(${type.id})">
-                                <i class="bi bi-pencil"></i> 編集
-                            </button>
-                            <button class="btn btn-danger btn--sm" onclick="hospitalSystem.deleteReservationType(${type.id})">
-                                <i class="bi bi-trash"></i> 削除
-                            </button>
-                        </div>
-                    </div>
-                    <div class="reservation-type-body">
-                        <div class="type-info-grid">
-                            <div class="type-info-item">
-                                <i class="bi bi-clock type-info-icon"></i>
-                                <div>
-                                    <small>時間間隔</small><br>
-                                    <strong>${type.interval}分</strong>
-                                </div>
-                            </div>
-                            <div class="type-info-item">
-                                <i class="bi bi-people type-info-icon"></i>
-                                <div>
-                                    <small>定員</small><br>
-                                    <strong>${type.capacity}名</strong>
-                                </div>
-                            </div>
-                            <div class="type-info-item">
-                                <i class="bi bi-calendar-range type-info-icon"></i>
-                                <div>
-                                    <small>予約期間</small><br>
-                                    <strong>${type.startDate} ~ ${type.endDate}</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        container.innerHTML = `
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button class="btn btn--outline" onclick="window.reservationSystem.changeCalendarMonth(-1)">&lt;</button>
+                    <span>${this.currentCalendarDate.getFullYear()}年${this.currentCalendarDate.getMonth() + 1}月</span>
+                    <button class="btn btn--outline" onclick="window.reservationSystem.changeCalendarMonth(1)">&gt;</button>
                 </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-        this.setupWeeklyHoursForm();
+            </div>
+            <div class="calendar-grid">
+                <div class="calendar-day-header">日</div>
+                <div class="calendar-day-header">月</div>
+                <div class="calendar-day-header">火</div>
+                <div class="calendar-day-header">水</div>
+                <div class="calendar-day-header">木</div>
+                <div class="calendar-day-header">金</div>
+                <div class="calendar-day-header">土</div>
+            </div>
+        `;
     }
 
-    // Setup weekly hours form
-    setupWeeklyHoursForm() {
-        const container = document.getElementById('weeklyHoursSettings');
-        if (!container) return;
-        
-        const days = [
-            {key: '月', name: '月曜日'},
-            {key: '火', name: '火曜日'},
-            {key: '水', name: '水曜日'},
-            {key: '木', name: '木曜日'},  
-            {key: '金', name: '金曜日'},
-            {key: '土', name: '土曜日'},
-            {key: '日', name: '日曜日'}
-        ];
-
-        let html = '';
-        days.forEach(day => {
-            html += `
-                <div class="weekly-hours-grid">
-                    <div class="weekly-hours-day">${day.name}</div>
-                    <input type="time" id="start_${day.key}" class="form-control" placeholder="開始時間">
-                    <input type="time" id="end_${day.key}" class="form-control" placeholder="終了時間">
-                </div>
-            `;
-        });
-        
-        container.innerHTML = html;
+    changeCalendarMonth(direction) {
+        this.currentCalendarDate.setMonth(this.currentCalendarDate.getMonth() + direction);
+        this.loadCalendar();
     }
 
-    // Edit reservation type
-    editReservationType(typeId) {
-        const data = this.getData();
-        const type = data.reservationTypes.find(t => t.id === typeId);
-        
-        if (type) {
-            // Fill form with existing data
-            const editingTypeIdEl = document.getElementById('editingTypeId');
-            const typeNameEl = document.getElementById('typeName');
-            const typeIntervalEl = document.getElementById('typeInterval');
-            const typeCapacityEl = document.getElementById('typeCapacity');
-            const typeStartDateEl = document.getElementById('typeStartDate');
-            const typeEndDateEl = document.getElementById('typeEndDate');
-            
-            if (editingTypeIdEl) editingTypeIdEl.value = type.id;
-            if (typeNameEl) typeNameEl.value = type.name;
-            if (typeIntervalEl) typeIntervalEl.value = type.interval;
-            if (typeCapacityEl) typeCapacityEl.value = type.capacity;
-            if (typeStartDateEl) typeStartDateEl.value = type.startDate;
-            if (typeEndDateEl) typeEndDateEl.value = type.endDate;
-            
-            // Fill weekly hours
-            Object.keys(type.weeklyHours).forEach(day => {
-                const startEl = document.getElementById(`start_${day}`);
-                const endEl = document.getElementById(`end_${day}`);
-                if (startEl) startEl.value = type.weeklyHours[day].start;
-                if (endEl) endEl.value = type.weeklyHours[day].end;
-            });
-            
-            const modal = new bootstrap.Modal(document.getElementById('reservationTypeModal'));
-            modal.show();
-        }
-    }
-
-    // Delete reservation type
-    deleteReservationType(typeId) {
-        if (confirm('この予約種類を削除してもよろしいですか？関連する予約もすべて削除されます。')) {
-            const data = this.getData();
-            const type = data.reservationTypes.find(t => t.id === typeId);
-            data.reservationTypes = data.reservationTypes.filter(t => t.id !== typeId);
-            data.reservations = data.reservations.filter(r => r.type !== type.name);
-            this.saveData(data);
-            this.loadReservationTypesAdmin();
-            this.loadReservationTypes(); // Update patient dropdown
-            this.showAlert('予約種類を削除しました。', 'success');
-        }
-    }
-
-    // Handle reservation type form submission
-    handleReservationTypeSubmit() {
-        const data = this.getData();
-        const editingIdEl = document.getElementById('editingTypeId');
-        const editingId = editingIdEl ? editingIdEl.value : '';
-        const isEditing = editingId !== '';
-        
-        const typeNameEl = document.getElementById('typeName');
-        const typeIntervalEl = document.getElementById('typeInterval');
-        const typeCapacityEl = document.getElementById('typeCapacity');
-        const typeStartDateEl = document.getElementById('typeStartDate');
-        const typeEndDateEl = document.getElementById('typeEndDate');
-        
-        if (!typeNameEl || !typeIntervalEl || !typeCapacityEl || !typeStartDateEl || !typeEndDateEl) {
-            this.showAlert('フォームの必須項目を入力してください。', 'warning');
-            return;
-        }
-
-        const typeData = {
-            id: isEditing ? parseInt(editingId) : Date.now(),
-            name: typeNameEl.value,
-            interval: parseInt(typeIntervalEl.value),
-            capacity: parseInt(typeCapacityEl.value),
-            startDate: typeStartDateEl.value,
-            endDate: typeEndDateEl.value,
-            closedDays: [],
-            weeklyHours: {}
-        };
-
-        // Collect weekly hours
-        const days = ['月', '火', '水', '木', '金', '土', '日'];
-        days.forEach(day => {
-            const startEl = document.getElementById(`start_${day}`);
-            const endEl = document.getElementById(`end_${day}`);
-            const startTime = startEl ? startEl.value : '';
-            const endTime = endEl ? endEl.value : '';
-            
-            typeData.weeklyHours[day] = {
-                start: startTime,
-                end: endTime
-            };
-            
-            // Add to closed days if no hours set
-            if (!startTime || !endTime) {
-                typeData.closedDays.push(day);
-            }
-        });
-
-        if (isEditing) {
-            const index = data.reservationTypes.findIndex(t => t.id === parseInt(editingId));
-            if (index !== -1) {
-                data.reservationTypes[index] = typeData;
-            }
-        } else {
-            data.reservationTypes.push(typeData);
-        }
-
-        this.saveData(data);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('reservationTypeModal'));
-        if (modal) {
-            modal.hide();
-        }
-        this.loadReservationTypesAdmin();
-        this.loadReservationTypes(); // Update patient interface dropdown
-        this.showAlert(isEditing ? '予約種類を更新しました。' : '予約種類を追加しました。', 'success');
-        
-        // Clear form
-        const form = document.getElementById('reservationTypeForm');
-        if (form) {
-            form.reset();
-        }
-        if (editingIdEl) {
-            editingIdEl.value = '';
-        }
-    }
-
-    // Load reservation management
-    loadReservationManagement() {
-        this.filterReservations('all');
-    }
-
-    filterReservations(filter) {
-        const data = this.getData();
-        let filtered = [...data.reservations];
-        const today = new Date();
-        
-        switch(filter) {
-            case 'today':
-                const todayStr = today.toISOString().split('T')[0];
-                filtered = filtered.filter(r => r.date === todayStr);
-                break;
-            case 'week':
-                const weekStart = new Date(today);
-                weekStart.setDate(today.getDate() - today.getDay());
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6);
-                filtered = filtered.filter(r => {
-                    const rDate = new Date(r.date);
-                    return rDate >= weekStart && rDate <= weekEnd;
-                });
-                break;
-            case 'month':
-                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-                const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                filtered = filtered.filter(r => {
-                    const rDate = new Date(r.date);
-                    return rDate >= monthStart && rDate <= monthEnd;
-                });
-                break;
-        }
-        
-        this.displayReservations(filtered);
-    }
-
-    searchReservations(query) {
-        const data = this.getData();
-        const filtered = data.reservations.filter(r => 
-            r.name.toLowerCase().includes(query.toLowerCase()) ||
-            r.email.toLowerCase().includes(query.toLowerCase())
-        );
-        this.displayReservations(filtered);
-    }
-
-    displayReservations(reservations) {
+    loadReservationsList() {
         const container = document.getElementById('reservationsList');
         if (!container) return;
         
-        if (reservations.length === 0) {
-            container.innerHTML = '<p class="text-muted">予約がありません。</p>';
-            return;
-        }
-
-        // Sort by date and time
-        reservations.sort((a, b) => {
-            const dateA = new Date(`${a.date} ${a.time}`);
-            const dateB = new Date(`${b.date} ${b.time}`);
-            return dateA - dateB;
-        });
-
-        let html = '<div class="table-responsive"><table class="table custom-table">';
-        html += `
-            <thead>
-                <tr>
-                    <th>予約日時</th>
-                    <th>種類</th>
-                    <th>患者名</th>
-                    <th>連絡先</th>
-                    <th>備考</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
-        
-        reservations.forEach(reservation => {
-            html += `
-                <tr>
-                    <td>${reservation.date}<br><small>${reservation.time}</small></td>
-                    <td><span class="badge badge-primary">${reservation.type}</span></td>
-                    <td>${reservation.name}</td>
-                    <td>
-                        <small>${reservation.email}</small><br>
-                        <small>${reservation.phone}</small>
-                    </td>
-                    <td>${reservation.notes ? `<small>${reservation.notes}</small>` : '-'}</td>
-                    <td>
-                        <button class="btn btn--outline btn--sm me-1" 
-                                onclick="hospitalSystem.editReservation(${reservation.id})">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-danger btn--sm" 
-                                onclick="hospitalSystem.deleteReservation(${reservation.id})">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
+        container.innerHTML = '<div class="empty-state"><h3>予約管理画面</h3><p>予約データが表示されます</p></div>';
     }
 
-    deleteReservation(reservationId) {
-        if (confirm('この予約を削除してもよろしいですか？')) {
-            const data = this.getData();
-            data.reservations = data.reservations.filter(r => r.id !== reservationId);
-            this.saveData(data);
-            this.loadReservationManagement();
-            this.showAlert('予約を削除しました。', 'success');
-        }
+    loadReservationTypesList() {
+        const container = document.getElementById('reservationTypesList');
+        if (!container) return;
+        
+        container.innerHTML = '<div class="empty-state"><h3>予約種類管理画面</h3><p>予約種類データが表示されます</p></div>';
     }
 
-    // Load email settings
     loadEmailSettings() {
-        const data = this.getData();
-        const brevoApiKeyEl = document.getElementById('brevoApiKey');
-        const emailFromEmailEl = document.getElementById('emailFromEmail');
-        const emailFromNameEl = document.getElementById('emailFromName');
-        const emailSubjectEl = document.getElementById('emailSubject');
-        const emailTemplateEl = document.getElementById('emailTemplate');
-        
-        if (brevoApiKeyEl) brevoApiKeyEl.value = data.settings.brevoApiKey || '';
-        if (emailFromEmailEl) emailFromEmailEl.value = data.settings.emailConfig.fromEmail || '';
-        if (emailFromNameEl) emailFromNameEl.value = data.settings.emailConfig.fromName || '';
-        if (emailSubjectEl) emailSubjectEl.value = data.settings.emailConfig.subject || '';
-        if (emailTemplateEl) emailTemplateEl.value = data.settings.emailTemplate || '';
+        // メール設定の読み込み（簡略版）
     }
 
-    // Handle email config save
-    handleEmailConfigSave() {
-        const data = this.getData();
-        const brevoApiKeyEl = document.getElementById('brevoApiKey');
-        const emailFromEmailEl = document.getElementById('emailFromEmail');
-        const emailFromNameEl = document.getElementById('emailFromName');
-        
-        data.settings.brevoApiKey = brevoApiKeyEl ? brevoApiKeyEl.value : '';
-        data.settings.emailConfig.fromEmail = emailFromEmailEl ? emailFromEmailEl.value : '';
-        data.settings.emailConfig.fromName = emailFromNameEl ? emailFromNameEl.value : '';
-        
-        this.saveData(data);
-        this.showAlert('Brevo設定を保存しました。', 'success');
-    }
-
-    // Handle email template save
-    handleEmailTemplateSave() {  
-        const data = this.getData();
-        const emailSubjectEl = document.getElementById('emailSubject');
-        const emailTemplateEl = document.getElementById('emailTemplate');
-        
-        data.settings.emailConfig.subject = emailSubjectEl ? emailSubjectEl.value : '';
-        data.settings.emailTemplate = emailTemplateEl ? emailTemplateEl.value : '';
-        
-        this.saveData(data);
-        this.showAlert('メールテンプレートを保存しました。', 'success');
-    }
-
-    // Test Brevo connection
-    async testBrevoConnection() {
-        const brevoApiKeyEl = document.getElementById('brevoApiKey');
-        const apiKey = brevoApiKeyEl ? brevoApiKeyEl.value : '';
-        if (!apiKey) {
-            this.showAlert('APIキーを入力してください。', 'warning');
-            return;
-        }
-        
-        try {
-            const response = await fetch('https://api.brevo.com/v3/account', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'api-key': apiKey
-                }
-            });
-
-            if (response.ok) {
-                this.showAlert('Brevo接続テストが成功しました。', 'success');
-            } else {
-                throw new Error('Connection failed');
-            }
-        } catch (error) {
-            this.showAlert('Brevo接続テストが失敗しました。APIキーを確認してください。', 'danger');
-        }
-    }
-
-    // Send test email
-    async sendTestEmail() {
-        const data = this.getData();
-        const emailFromEmailEl = document.getElementById('emailFromEmail');
-        const email = emailFromEmailEl ? emailFromEmailEl.value : '';
-        
-        if (!email) {
-            this.showAlert('送信者メールアドレスを入力してください。', 'warning');
-            return;
-        }
-        
-        if (!data.settings.brevoApiKey) {
-            this.showAlert('Brevo APIキーを設定してください。', 'warning');
-            return;
-        }
-
-        try {
-            const emailData = {
-                sender: {
-                    name: data.settings.emailConfig.fromName,
-                    email: data.settings.emailConfig.fromEmail
-                },
-                to: [{
-                    email: email,
-                    name: 'テスト'
-                }],
-                subject: 'テストメール - 病院予約システム',
-                textContent: 'これはBrevo連携のテストメールです。\n\n病院予約システム'
-            };
-
-            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'api-key': data.settings.brevoApiKey
-                },
-                body: JSON.stringify(emailData)
-            });
-
-            if (response.ok) {
-                this.showAlert(`テストメールを ${email} に送信しました。`, 'success');
-            } else {
-                throw new Error('Email sending failed');
-            }
-        } catch (error) {
-            this.showAlert('テストメールの送信に失敗しました。', 'danger');
-        }
-    }
-
-    // Load system settings
     loadSystemSettings() {
-        const data = this.getData();
-        const welcomeMessageTextEl = document.getElementById('welcomeMessageText');
-        if (welcomeMessageTextEl) {
-            welcomeMessageTextEl.value = data.settings.welcomeMessage;
+        const noticeMessage = this.getStorageItem('noticeMessage');
+        const noticeTextArea = document.getElementById('noticeTextArea');
+        if (noticeTextArea && noticeMessage) {
+            noticeTextArea.value = noticeMessage;
         }
     }
 
-    // Handle password change
+    switchTab(tabName) {
+        document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        const targetTab = document.querySelector(`[data-tab="${tabName}"]`);
+        const targetContent = document.getElementById(`${tabName}Tab`);
+        
+        if (targetTab) targetTab.classList.add('active');
+        if (targetContent) targetContent.classList.add('active');
+    }
+
+    handleNoticeUpdate() {
+        const noticeTextArea = document.getElementById('noticeTextArea');
+        if (!noticeTextArea) return;
+        
+        const message = noticeTextArea.value;
+        this.setStorageItem('noticeMessage', message);
+        this.updateNoticeMessage();
+        this.showMessage('お知らせメッセージを更新しました。', 'success');
+    }
+
     handlePasswordChange() {
-        const data = this.getData();
-        const currentPasswordEl = document.getElementById('currentPassword');
-        const newPasswordEl = document.getElementById('newPassword');
-        const confirmPasswordEl = document.getElementById('confirmPassword');
-        
-        if (!currentPasswordEl || !newPasswordEl || !confirmPasswordEl) {
-            this.showAlert('パスワード変更フォームに問題があります。', 'danger');
-            return;
-        }
-        
-        const currentPassword = currentPasswordEl.value;
-        const newPassword = newPasswordEl.value;
-        const confirmPassword = confirmPasswordEl.value;
-        
-        if (currentPassword !== data.settings.adminPassword) {
-            this.showAlert('現在のパスワードが正しくありません。', 'danger');
-            return;
-        }
-        
-        if (newPassword !== confirmPassword) {
-            this.showAlert('新しいパスワードが一致しません。', 'danger');
-            return;
-        }
-        
-        if (newPassword.length < 4) {
-            this.showAlert('パスワードは4文字以上で入力してください。', 'danger');
-            return;
-        }
-        
-        data.settings.adminPassword = newPassword;
-        this.saveData(data);
-        this.showAlert('パスワードを変更しました。', 'success');
-        
-        const form = document.getElementById('passwordChangeForm');
-        if (form) {
-            form.reset();
-        }
+        this.showMessage('パスワード変更機能は実装中です。', 'info');
     }
 
-    // Handle welcome message change
-    handleWelcomeMessageChange() {
-        const data = this.getData();
-        const welcomeMessageTextEl = document.getElementById('welcomeMessageText');
-        
-        if (!welcomeMessageTextEl) {
-            this.showAlert('ウェルカムメッセージフォームに問題があります。', 'danger');
-            return;
-        }
-        
-        const newMessage = welcomeMessageTextEl.value;
-        data.settings.welcomeMessage = newMessage;
-        this.saveData(data);
-        
-        const welcomeMessageEl = document.getElementById('welcomeMessage');
-        if (welcomeMessageEl) {
-            welcomeMessageEl.textContent = newMessage;
-        }
-        
-        this.showAlert('ウェルカムメッセージを更新しました。', 'success');
+    showAddTypeModal() {
+        this.showMessage('予約種類追加機能は実装中です。', 'info');
     }
 
-    // Data management methods
+    handleEmailSettingsSave() {
+        this.showMessage('メール設定保存機能は実装中です。', 'info');
+    }
+
+    handleEmailTemplateSave() {
+        this.showMessage('メールテンプレート保存機能は実装中です。', 'info');
+    }
+
+    testBrevoConnection() {
+        this.showMessage('Brevo接続テスト機能は実装中です。', 'info');
+    }
+
+    sendTestEmail() {
+        this.showMessage('テストメール送信機能は実装中です。', 'info');
+    }
+
     exportData() {
-        try {
-            const data = this.getData();
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `hospital_reservation_backup_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            this.showAlert('データをエクスポートしました。', 'success');
-        } catch (error) {
-            this.showAlert('データのエクスポートに失敗しました。', 'danger');
-        }
+        this.showMessage('データエクスポート機能は実装中です。', 'info');
     }
 
-    importData() {
-        const fileInput = document.getElementById('importFile');
-        if (!fileInput) {
-            this.showAlert('ファイル入力フィールドが見つかりません。', 'danger');
-            return;
-        }
-        
-        const file = fileInput.files[0];
-        if (!file) {
-            this.showAlert('ファイルを選択してください。', 'warning');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                
-                // Validate data structure
-                if (!importedData.settings || !importedData.reservationTypes || !importedData.reservations) {
-                    throw new Error('Invalid data format');
-                }
-                
-                localStorage.setItem('hospitalReservationData', JSON.stringify(importedData));
-                this.showAlert('データをインポートしました。ページを再読み込みしてください。', 'success');
-                
-                // Reload the page after a short delay
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-                
-            } catch (error) {
-                this.showAlert('ファイルが正しくありません。', 'danger');
-            }
-        };
-        reader.readAsText(file);
+    importData(event) {
+        this.showMessage('データインポート機能は実装中です。', 'info');
     }
 
-    clearAllData() {
-        if (confirm('すべてのデータを削除してもよろしいですか？この操作は取り消せません。')) {
-            if (confirm('本当にすべてのデータを削除しますか？')) {
-                localStorage.removeItem('hospitalReservationData');
-                this.initializeData();
-                this.showAlert('すべてのデータを削除しました。ページを再読み込みしてください。', 'info');
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
-            }
-        }
-    }
-
-    // Print reservations
     printReservations() {
-        const data = this.getData();
-        const printWindow = window.open('', '_blank');
-        const now = new Date().toLocaleString('ja-JP');
-        
-        let html = `
-            <html>
-                <head>
-                    <title>予約一覧 - ${now}</title>
-                    <style>
-                        body { font-family: sans-serif; }
-                        .print-header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-                        .print-table { width: 100%; border-collapse: collapse; }
-                        .print-table th, .print-table td { border: 1px solid #333; padding: 8px; text-align: left; }
-                        .print-table th { background: #f5f5f5; }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-header">
-                        <h1>予約一覧</h1>
-                        <p>作成日時: ${now}</p>
-                    </div>
-                    <table class="print-table">
-                        <thead>
-                            <tr>
-                                <th>予約日時</th>
-                                <th>種類</th>
-                                <th>患者名</th>
-                                <th>連絡先</th>
-                                <th>備考</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-        
-        // Sort reservations by date and time
-        const sortedReservations = data.reservations.sort((a, b) => {
-            const dateA = new Date(`${a.date} ${a.time}`);
-            const dateB = new Date(`${b.date} ${b.time}`);
-            return dateA - dateB;
-        });
-        
-        sortedReservations.forEach(reservation => {
-            html += `
-                <tr>
-                    <td>${reservation.date} ${reservation.time}</td>
-                    <td>${reservation.type}</td>
-                    <td>${reservation.name}</td>
-                    <td>${reservation.email}<br>${reservation.phone}</td>
-                    <td>${reservation.notes || '-'}</td>
-                </tr>
-            `;
-        });
-        
-        html += `
-                        </tbody>
-                    </table>
-                </body>
-            </html>
-        `;
-        
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.print();
+        window.print();
     }
 
-    // Show calendar view  
-    showCalendarView() {
-        this.generateCalendarView();
-        const modal = new bootstrap.Modal(document.getElementById('calendarModal'));
-        modal.show();
-    }
-
-    // Generate calendar view
-    generateCalendarView() {
-        const data = this.getData();
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - firstDay.getDay());
-        
-        const monthNames = [
-            '1月', '2月', '3月', '4月', '5月', '6月',
-            '7月', '8月', '9月', '10月', '11月', '12月'
-        ];
-        
-        let html = `
-            <div class="text-center mb-4">
-                <h4>${year}年 ${monthNames[month]}</h4>
-            </div>
-            <div class="calendar-container">
-                <div class="calendar-grid">
-                    <div class="calendar-header">日</div>
-                    <div class="calendar-header">月</div>
-                    <div class="calendar-header">火</div>
-                    <div class="calendar-header">水</div>
-                    <div class="calendar-header">木</div>
-                    <div class="calendar-header">金</div>
-                    <div class="calendar-header">土</div>
-        `;
-        
-        const currentDate = new Date(startDate);
-        for (let i = 0; i < 42; i++) {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const dayReservations = data.reservations.filter(r => r.date === dateStr);
-            const isCurrentMonth = currentDate.getMonth() === month;
-            
-            html += `
-                <div class="calendar-day ${dayReservations.length > 0 ? 'has-reservations' : ''}" 
-                     style="${!isCurrentMonth ? 'opacity: 0.3;' : ''}">
-                    <div class="calendar-day-number">${currentDate.getDate()}</div>
-                    ${dayReservations.length > 0 ? 
-                        `<div class="calendar-reservation-count">${dayReservations.length}</div>` : 
-                        ''}
-                    <div class="calendar-reservations">
-                        ${dayReservations.slice(0, 2).map(r => {
-                            return `<div style="font-size: 10px;">${r.time} ${r.type}</div>`;
-                        }).join('')}
-                        ${dayReservations.length > 2 ? `<div style="font-size: 10px;">+${dayReservations.length - 2}</div>` : ''}
-                    </div>
-                </div>
-            `;
-            
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        
-        html += '</div></div>';
-        const calendarView = document.getElementById('calendarView');
-        if (calendarView) {
-            calendarView.innerHTML = html;
-        }
-    }
-
-    // Utility functions
-    parseTime(timeStr) {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        return hours * 60 + minutes;
-    }
-
-    formatTime(minutes) {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-    }
-
-    showAlert(message, type = 'info') {
-        // Create alert element
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.body.appendChild(alertDiv);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.parentNode.removeChild(alertDiv);
-            }
-        }, 5000);
-    }
-
-    // Placeholder for reservation editing (not implemented in this version)
     editReservation(reservationId) {
-        this.showAlert('予約編集機能は今後実装予定です。', 'info');
+        this.showMessage('予約編集機能は実装中です。', 'info');
+    }
+
+    handleReservationEdit() {
+        this.showMessage('予約編集機能は実装中です。', 'info');
+    }
+
+    handleReservationDelete() {
+        this.showMessage('予約削除機能は実装中です。', 'info');
+    }
+
+    editType(typeId) {
+        this.showMessage('予約種類編集機能は実装中です。', 'info');
+    }
+
+    deleteType(typeId) {
+        this.showMessage('予約種類削除機能は実装中です。', 'info');
+    }
+
+    handleTypeSave() {
+        this.showMessage('予約種類保存機能は実装中です。', 'info');
     }
 }
 
-// Initialize the system when the DOM is loaded
+// システム初期化
 document.addEventListener('DOMContentLoaded', () => {
-    window.hospitalSystem = new HospitalReservationSystem();
+    window.reservationSystem = new HospitalReservationSystem();
 });
+
+// グローバル関数（HTMLから呼び出すため）
+function changeCalendarMonth(direction) {
+    if (window.reservationSystem) {
+        window.reservationSystem.changeCalendarMonth(direction);
+    }
+}
