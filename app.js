@@ -1,10 +1,10 @@
 // Firebase設定 - デモ用（実際のプロジェクトでは自分のFirebaseプロジェクトの設定に置き換えてください）
 const firebaseConfig = {
   // デモ用設定 - 実際の使用時は適切な値に置き換えてください
-  apiKey: "demo-api-key",
-  authDomain: "demo-project.firebaseapp.com",
-  projectId: "demo-project-id",
-  storageBucket: "demo-project.appspot.com",
+  apiKey: "AIzaSyCdIKKQktfxR990-JXcnutnCtg_KTBgEGI",
+  authDomain: "hospital-reservation-6b1fa.firebaseapp.com",
+  projectId: "hospital-reservation-6b1fa",
+  storageBucket: "hospital-reservation-6b1fa.appspot.com",
   messagingSenderId: "123456789",
   appId: "demo-app-id"
 };
