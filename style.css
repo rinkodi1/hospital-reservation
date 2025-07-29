@@ -738,987 +738,739 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* 追加スタイル */
-.header {
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-16) 0;
+/* 画面制御 */
+.screen {
+    min-height: 100vh;
 }
 
-.header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.screen.hidden {
+    display: none;
+}
+
+/* ヘッダー */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-24);
+    padding: var(--space-16) 0;
+    border-bottom: 2px solid var(--color-primary);
 }
 
 .header h1 {
-  color: var(--color-primary);
-  margin: 0;
+    color: var(--color-primary);
+    font-size: var(--font-size-3xl);
+    margin: 0;
 }
 
-.notice-section {
-  background-color: var(--color-bg-1);
-  padding: var(--space-24) 0;
+/* ログイン画面 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: var(--space-24);
+}
+
+.login-container .card {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* 管理画面レイアウト */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    padding: var(--space-16);
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-24);
+    padding-bottom: var(--space-16);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-header h2 {
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: var(--space-8);
+}
+
+.sidebar-link {
+    display: block;
+    padding: var(--space-12) var(--space-16);
+    color: var(--color-text);
+    text-decoration: none;
+    border-radius: var(--radius-base);
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.sidebar-link:hover {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.sidebar-link.active {
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
 }
 
 .main-content {
-  padding: var(--space-32) 0;
-  min-height: 60vh;
+    flex: 1;
+    padding: var(--space-24);
+    overflow-y: auto;
 }
 
-/* 予約フォームのステップ */
-.reservation-form {
-  max-width: 800px;
-  margin: 0 auto;
+/* セクションヘッダー */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-24);
 }
 
-.step {
-  display: none;
+.section-header h2 {
+    color: var(--color-primary);
+    margin: 0;
 }
 
-.step.active {
-  display: block;
+.section-actions {
+    display: flex;
+    gap: var(--space-8);
+    align-items: center;
 }
 
-.selected-type,
-.selected-info {
-  background-color: var(--color-bg-2);
-  padding: var(--space-16);
-  border-radius: var(--radius-base);
-  margin-bottom: var(--space-16);
-  font-weight: var(--font-weight-medium);
+.admin-section.hidden {
+    display: none;
 }
 
-.selected-info div {
-  margin-bottom: var(--space-8);
-}
-
-.selected-info div:last-child {
-  margin-bottom: 0;
-}
-
-/* 予約種類選択 */
-.reservation-types {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--space-16);
-}
-
-.reservation-type-card {
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-20);
-  cursor: pointer;
-  transition: all var(--duration-normal) var(--ease-standard);
-  background-color: var(--color-surface);
-}
-
-.reservation-type-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
-}
-
-.reservation-type-card.selected {
-  border-color: var(--color-primary);
-  background-color: var(--color-bg-1);
-}
-
-.reservation-type-card h3 {
-  margin-bottom: var(--space-8);
-  color: var(--color-text);
-}
-
-.reservation-type-card p {
-  color: var(--color-text-secondary);
-  margin: 0;
-  font-size: var(--font-size-sm);
-}
-
-/* 時間枠表示 */
-.time-slots {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-12);
-  margin-top: var(--space-16);
+/* 時間枠選択 */
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--space-8);
+    margin-top: var(--space-8);
 }
 
 .time-slot {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  padding: var(--space-12);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
-  background-color: var(--color-surface);
+    padding: var(--space-8) var(--space-12);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background-color: var(--color-surface);
+    cursor: pointer;
+    text-align: center;
+    transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .time-slot:hover {
-  border-color: var(--color-primary);
+    background-color: var(--color-secondary);
 }
 
 .time-slot.selected {
-  border-color: var(--color-primary);
-  background-color: var(--color-bg-1);
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+    border-color: var(--color-primary);
 }
 
 .time-slot.full {
-  background-color: var(--color-bg-4);
-  cursor: not-allowed;
-  opacity: 0.6;
+    background-color: var(--color-secondary);
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .time-slot-time {
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--space-4);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-2);
 }
 
 .time-slot-availability {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
 }
 
-.time-slot-availability.full {
-  color: var(--color-error);
+.time-slot.selected .time-slot-availability {
+    color: var(--color-btn-primary-text);
 }
 
-.time-slot-availability.available {
-  color: var(--color-success);
+/* フィルター行 */
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: var(--space-12);
+    align-items: center;
 }
 
-/* ステップボタン */
-.step-buttons {
-  display: flex;
-  gap: var(--space-16);
-  justify-content: flex-end;
-  margin-top: var(--space-24);
+/* テーブル */
+.table-responsive {
+    overflow-x: auto;
 }
 
-/* 必須項目 */
-.required {
-  color: var(--color-error);
-}
-
-/* 成功メッセージ */
-.success-message {
-  text-align: center;
-  padding: var(--space-24);
-}
-
-.reservation-summary {
-  background-color: var(--color-bg-3);
-  padding: var(--space-16);
-  border-radius: var(--radius-base);
-  margin-top: var(--space-16);
-}
-
-.reservation-summary h3 {
-  margin-bottom: var(--space-12);
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: var(--space-8);
-  padding-bottom: var(--space-8);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-/* モーダル */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-  position: relative;
-  background-color: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-content.large {
-  max-width: 800px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-20);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.modal-header h3 {
-  margin: 0;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: var(--font-size-3xl);
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-close:hover {
-  color: var(--color-text);
-}
-
-.modal-body {
-  padding: var(--space-20);
-}
-
-.modal-actions {
-  display: flex;
-  gap: var(--space-12);
-  justify-content: flex-end;
-  margin-top: var(--space-24);
-  padding-top: var(--space-16);
-  border-top: 1px solid var(--color-border);
-}
-
-/* 管理者画面 */
-.admin-panel {
-  display: none;
-  min-height: 100vh;
-  background-color: var(--color-background);
-}
-
-.admin-panel.active {
-  display: block;
-}
-
-.admin-header {
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-16) 0;
-}
-
-.admin-header .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.admin-header h1 {
-  color: var(--color-primary);
-  margin: 0;
-}
-
-.admin-nav {
-  background-color: var(--color-bg-1);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.nav-tabs {
-  display: flex;
-  gap: 0;
-  overflow-x: auto;
-}
-
-.nav-tab {
-  background: none;
-  border: none;
-  padding: var(--space-16) var(--space-20);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all var(--duration-fast) var(--ease-standard);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.nav-tab:hover {
-  color: var(--color-text);
-  background-color: var(--color-bg-2);
-}
-
-.nav-tab.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-  background-color: var(--color-surface);
-}
-
-.admin-content {
-  padding: var(--space-32) 0;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-/* ダッシュボード */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-20);
-  margin-bottom: var(--space-32);
-}
-
-.stat-number {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  margin-top: var(--space-8);
-}
-
-/* アクションバー */
-.actions-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-24);
-  gap: var(--space-16);
-  flex-wrap: wrap;
-}
-
-.filters {
-  display: flex;
-  gap: var(--space-12);
-  flex-wrap: wrap;
-}
-
-.actions {
-  display: flex;
-  gap: var(--space-12);
-  flex-wrap: wrap;
-}
-
-/* 予約テーブル */
 .reservations-table {
-  overflow-x: auto;
-}
-
-.reservations-table table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--color-border);
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-16);
 }
 
 .reservations-table th,
 .reservations-table td {
-  padding: var(--space-12);
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
+    padding: var(--space-12);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .reservations-table th {
-  background-color: var(--color-bg-1);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-}
-
-.reservations-table th:hover {
-  background-color: var(--color-bg-2);
+    background-color: var(--color-bg-1);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
 }
 
 .reservations-table tbody tr:hover {
-  background-color: var(--color-bg-1);
+    background-color: var(--color-secondary);
 }
 
-.reservation-actions {
-  display: flex;
-  gap: var(--space-8);
+.sort-btn {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
 }
 
-.btn-sm {
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--font-size-sm);
-  border-radius: var(--radius-sm);
-}
-
-.btn--sm {
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--font-size-sm);
-  border-radius: var(--radius-sm);
-}
-
-/* 予約種類リスト */
-.reservation-type-item {
-  margin-bottom: var(--space-16);
-}
-
-.type-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--color-bg-2);
-  padding: var(--space-16);
-  border-radius: var(--radius-base);
-}
-
-.type-details {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  margin-top: var(--space-12);
-}
-
-.type-details-content {
-  padding: var(--space-16);
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-16);
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.detail-label {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-4);
-}
-
-.detail-value {
-  font-weight: var(--font-weight-medium);
-}
-
-.type-actions {
-  display: flex;
-  gap: var(--space-8);
-}
-
-/* 週間スケジュール */
-.weekly-schedule {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  overflow: hidden;
-  margin-bottom: var(--space-16);
-}
-
-.day-schedule {
-  display: flex;
-  align-items: center;
-  padding: var(--space-12);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.day-schedule:last-child {
-  border-bottom: none;
-}
-
-.day-name {
-  width: 80px;
-  font-weight: var(--font-weight-medium);
-}
-
-.day-enabled {
-  margin-right: var(--space-16);
-}
-
-.time-inputs {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  flex: 1;
-}
-
-.time-inputs input {
-  width: 100px;
+.sort-btn:hover {
+    color: var(--color-primary);
 }
 
 /* カレンダー */
-.admin-calendar {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  overflow: hidden;
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-24);
 }
 
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-16);
-  background-color: var(--color-bg-1);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.calendar-nav {
-  display: flex;
-  gap: var(--space-8);
+.calendar-controls h3 {
+    margin: 0;
+    color: var(--color-primary);
 }
 
 .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-}
-
-.calendar-day-header {
-  padding: var(--space-12);
-  text-align: center;
-  font-weight: var(--font-weight-semibold);
-  background-color: var(--color-bg-2);
-  border-bottom: 1px solid var(--color-border);
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-2);
 }
 
 .calendar-day {
-  aspect-ratio: 1;
-  border: 1px solid var(--color-border);
-  padding: var(--space-8);
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background-color: var(--color-surface);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .calendar-day:hover {
-  background-color: var(--color-bg-1);
+    background-color: var(--color-secondary);
 }
 
 .calendar-day.other-month {
-  color: var(--color-text-secondary);
-  background-color: var(--color-bg-1);
+    opacity: 0.3;
 }
 
 .calendar-day.today {
-  background-color: var(--color-bg-3);
-  font-weight: var(--font-weight-bold);
+    background-color: var(--color-bg-1);
+    border-color: var(--color-primary);
 }
 
-.calendar-day.has-reservations {
-  background-color: var(--color-bg-2);
+.calendar-day-number {
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-4);
 }
 
-.day-number {
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-4);
+.calendar-day-reservations {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
 }
 
-.reservation-count {
-  font-size: var(--font-size-xs);
-  background-color: var(--color-primary);
-  color: var(--color-btn-primary-text);
-  border-radius: var(--radius-full);
-  padding: var(--space-2) var(--space-6);
-  min-width: 20px;
-  text-align: center;
+/* 予約種類設定 */
+.type-card {
+    margin-bottom: var(--space-16);
+}
+
+.type-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-16);
+}
+
+.type-card-title {
+    color: var(--color-primary);
+    margin: 0;
+}
+
+.type-settings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-16);
+}
+
+.setting-group {
+    background-color: var(--color-bg-2);
+    padding: var(--space-16);
+    border-radius: var(--radius-base);
+}
+
+.setting-group h4 {
+    margin: 0 0 var(--space-12) 0;
+    color: var(--color-text);
+}
+
+.business-hours-grid {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    gap: var(--space-8);
+    align-items: center;
+}
+
+.business-hours-grid label {
+    font-weight: var(--font-weight-medium);
+}
+
+.holidays-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    padding: var(--space-8);
+}
+
+.holiday-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    background-color: var(--color-surface);
+    border-radius: var(--radius-sm);
+}
+
+.holiday-remove {
+    background: none;
+    border: none;
+    color: var(--color-error);
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+}
+
+/* モーダル */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-16) var(--space-20);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--color-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: var(--font-size-2xl);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: var(--color-text);
+}
+
+.modal-body {
+    padding: var(--space-20);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-20);
+    border-top: 1px solid var(--color-border);
+}
+
+/* 通知 */
+.notification {
+    position: fixed;
+    top: var(--space-20);
+    right: var(--space-20);
+    z-index: 1100;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.notification.hidden {
+    display: none;
+}
+
+.notification-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-12) var(--space-16);
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+}
+
+.notification.success .notification-content {
+    background-color: var(--color-success);
+}
+
+.notification.error .notification-content {
+    background-color: var(--color-error);
+}
+
+.notification.warning .notification-content {
+    background-color: var(--color-warning);
+}
+
+#notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    padding: 0;
+    margin-left: var(--space-12);
+}
+
+/* ボタンスタイル拡張 */
+.btn--error {
+    background-color: var(--color-error);
+    color: var(--color-btn-primary-text);
+}
+
+.btn--error:hover {
+    background-color: rgba(var(--color-error-rgb), 0.8);
+}
+
+.btn--warning {
+    background-color: var(--color-warning);
+    color: var(--color-btn-primary-text);
+}
+
+.btn--warning:hover {
+    background-color: rgba(var(--color-warning-rgb), 0.8);
+}
+
+.btn--success {
+    background-color: var(--color-success);
+    color: var(--color-btn-primary-text);
+}
+
+.btn--success:hover {
+    background-color: rgba(var(--color-success-rgb), 0.8);
+}
+
+/* 印刷用スタイル */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .print-area,
+    .print-area * {
+        visibility: visible;
+    }
+    
+    .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    .btn, .sidebar, .section-actions {
+        display: none !important;
+    }
+    
+    .reservations-table {
+        font-size: 12px;
+    }
+    
+    .reservations-table th,
+    .reservations-table td {
+        padding: 4px 8px;
+    }
 }
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
-  .header .container {
-    flex-direction: column;
-    gap: var(--space-16);
-    text-align: center;
-  }
-
-  .step-buttons {
-    flex-direction: column;
-  }
-
-  .actions-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filters,
-  .actions {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .nav-tabs {
-    justify-content: flex-start;
-  }
-
-  .modal-content {
-    width: 95%;
-    margin: var(--space-16);
-  }
-
-  .time-slots {
-    grid-template-columns: 1fr;
-  }
-
-  .reservation-types {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .day-schedule {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-8);
-  }
-
-  .time-inputs {
-    width: 100%;
-  }
-
-  .calendar-grid {
-    font-size: var(--font-size-sm);
-  }
-
-  .calendar-day {
-    aspect-ratio: 1.2;
-  }
+    .admin-layout {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        order: 2;
+    }
+    
+    .main-content {
+        order: 1;
+        padding: var(--space-16);
+    }
+    
+    .sidebar-header {
+        flex-direction: column;
+        gap: var(--space-8);
+        align-items: stretch;
+    }
+    
+    .sidebar-menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-8);
+    }
+    
+    .sidebar-menu li {
+        margin-bottom: 0;
+    }
+    
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: var(--space-12);
+        align-items: stretch;
+    }
+    
+    .section-actions {
+        justify-content: stretch;
+    }
+    
+    .type-settings {
+        grid-template-columns: 1fr;
+    }
+    
+    .business-hours-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+    }
+    
+    .business-hours-grid label {
+        grid-column: 1 / -1;
+    }
+    
+    .calendar-grid {
+        font-size: var(--font-size-sm);
+    }
+    
+    .calendar-day {
+        padding: var(--space-4);
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: var(--space-8);
+    }
+    
+    .modal-body {
+        padding: var(--space-16);
+    }
+    
+    .notification {
+        right: var(--space-8);
+        left: var(--space-8);
+        width: auto;
+        min-width: auto;
+    }
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding-left: var(--space-12);
-    padding-right: var(--space-12);
-  }
-
-  .modal-body {
-    padding: var(--space-16);
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .type-header {
-    flex-direction: column;
-    gap: var(--space-12);
-    align-items: flex-start;
-  }
-
-  .type-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+    .header {
+        flex-direction: column;
+        gap: var(--space-12);
+        text-align: center;
+    }
+    
+    .header h1 {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .time-slots-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+    
+    .reservations-table {
+        font-size: var(--font-size-sm);
+    }
+    
+    .reservations-table th,
+    .reservations-table td {
+        padding: var(--space-6);
+    }
+    
+    .calendar-day {
+        padding: var(--space-2);
+        font-size: var(--font-size-xs);
+    }
+    
+    .sidebar-menu {
+        flex-direction: column;
+    }
 }
 
-/* 印刷スタイル */
-@media print {
-  .btn,
-  .admin-nav,
-  .modal,
-  .actions-bar {
-    display: none !important;
-  }
-
-  .card {
-    box-shadow: none;
-    border: 1px solid #000;
-  }
-
-  body {
-    font-size: 12px;
-  }
-
-  .reservations-table {
-    font-size: 11px;
-  }
-}
-
-/* アニメーション */
-.fade-in {
-  animation: fadeIn var(--duration-normal) var(--ease-standard);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* エラー・成功メッセージ */
-.message {
-  padding: var(--space-12) var(--space-16);
-  border-radius: var(--radius-base);
-  margin-bottom: var(--space-16);
-  border: 1px solid;
-}
-
-.message.error {
-  background-color: rgba(var(--color-error-rgb), 0.1);
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-
-.message.success {
-  background-color: rgba(var(--color-success-rgb), 0.1);
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
-
-.message.warning {
-  background-color: rgba(var(--color-warning-rgb), 0.1);
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
-
-.message.info {
-  background-color: rgba(var(--color-info-rgb), 0.1);
-  border-color: var(--color-info);
-  color: var(--color-info);
-}
-
-/* ローディング */
-.loading {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  border-top-color: var(--color-primary);
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 空の状態 */
-.empty-state {
-  text-align: center;
-  padding: var(--space-32);
-  color: var(--color-text-secondary);
-}
-
-.empty-state h3 {
-  margin-bottom: var(--space-16);
-}
-
-/* トグルスイッチ */
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-border);
-  transition: var(--duration-fast);
-  border-radius: 24px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: var(--duration-fast);
-  border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-  background-color: var(--color-primary);
-}
-
-input:checked + .toggle-slider:before {
-  transform: translateX(26px);
-}
-
-/* 追加スタイル - メッセージ表示の改善 */
-.message-container {
-  position: fixed;
-  top: var(--space-20);
-  right: var(--space-20);
-  left: var(--space-20);
-  z-index: 2000;
-  pointer-events: none;
-}
-
-.message-container .message {
-  pointer-events: auto;
-  animation: slideInDown var(--duration-normal) var(--ease-standard);
-  box-shadow: var(--shadow-lg);
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 予約フォームの改善 */
-.form-progress {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-32);
-}
-
-.progress-step {
-  display: flex;
-  align-items: center;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.progress-step.active {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.progress-step:not(:last-child)::after {
-  content: "→";
-  margin: 0 var(--space-12);
-  color: var(--color-text-secondary);
-}
-
-/* 管理者画面の統計カードの改善 */
-.stat-trend {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin-top: var(--space-4);
-}
-
-.stat-trend.up {
-  color: var(--color-success);
-}
-
-.stat-trend.down {
-  color: var(--color-error);
-}
-
-/* データ保護に関する注意書き */
-.data-notice {
-  background-color: var(--color-bg-1);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  padding: var(--space-16);
-  margin-bottom: var(--space-20);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.data-notice h4 {
-  color: var(--color-text);
-  margin-bottom: var(--space-8);
-}
-
-/* ツールチップのスタイル */
-.tooltip {
-  position: relative;
-  display: inline-block;
-  cursor: help;
-}
-
-.tooltip:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--color-charcoal-800);
-  color: var(--color-white);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--radius-base);
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-  z-index: 1000;
-  animation: fadeIn var(--duration-fast) var(--ease-standard);
-}
-
-/* アクセシビリティの改善 */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* 高コントラストモード対応 */
-@media (prefers-contrast: high) {
-  .card {
-    border-width: 2px;
-  }
-  
-  .btn {
-    border-width: 2px;
-  }
-  
-  .time-slot {
-    border-width: 2px;
-  }
-}
-
-/* モーション設定を尊重 */
+/* アクセシビリティ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ハイコントラスト対応 */
+@media (prefers-contrast: high) {
+    .time-slot {
+        border-width: 2px;
+    }
+    
+    .btn {
+        border-width: 2px;
+    }
+    
+    .card {
+        border-width: 2px;
+    }
+}
+
+/* ダークモード固有の調整 */
+@media (prefers-color-scheme: dark) {
+    .calendar-day.today {
+        background-color: var(--color-bg-1);
+    }
+    
+    .setting-group {
+        background-color: var(--color-bg-2);
+    }
+    
+    .reservations-table th {
+        background-color: var(--color-bg-1);
+    }
+}
+
+/* ユーティリティクラス追加 */
+.mb-8 {
+    margin-bottom: var(--space-8);
+}
+
+.mt-8 {
+    margin-top: var(--space-8);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.no-wrap {
+    white-space: nowrap;
 }
