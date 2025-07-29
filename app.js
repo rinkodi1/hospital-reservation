@@ -7,9 +7,9 @@
 
 // EmailJS設定（実際の値に変更してください）
 const EMAILJS_CONFIG = {
-    serviceId: 'YOUR_SERVICE_ID',
-    templateId: 'YOUR_TEMPLATE_ID', 
-    publicKey: 'YOUR_PUBLIC_KEY'
+    serviceId: 'service_sj4j47e',
+    templateId: 'template_u2cwp0d', 
+    publicKey: 'xyuPENz5fwFEEPlrP'
 };
 
 // デフォルト設定
