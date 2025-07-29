@@ -886,7 +886,7 @@ select.form-control {
 
 .reservation-type-header {
     display: flex;
-    justify-content: between;
+    justify-content: space-between;
     align-items: center;
     padding: var(--space-16);
     background: var(--color-bg-3);
