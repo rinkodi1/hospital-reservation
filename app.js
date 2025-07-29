@@ -12,64 +12,81 @@ class HospitalReservationSystem {
             const defaultData = {
                 settings: {
                     adminPassword: "admin123",
-                    welcomeMessage: "当病院の予約システムへようこそ。ご希望の予約種類と日時をお選びください。",
+                    welcomeMessage: "当院の予約システムをご利用いただき、ありがとうございます。",
+                    brevoApiKey: "",
+                    emailTemplate: "この度は当院をご利用いただき、ありがとうございます。\n\n予約が完了いたしました。\n\n【予約詳細】\n予約種類: {{type}}\n予約日時: {{date}} {{time}}\nお名前: {{name}}\n電話番号: {{phone}}\n備考: {{notes}}\n\n何かご不明な点がございましたら、お電話にてお問い合わせください。\n\n当院",
                     emailConfig: {
-                        apiKey: "",
                         fromEmail: "",
-                        fromName: "病院予約システム"
-                    },
-                    emailTemplate: "ご予約ありがとうございます。\n\n予約詳細:\n日時: {date} {time}\n種類: {type}\nお名前: {name}\n\nご質問がございましたら、お電話にてお問い合わせください。",
-                    emailSubject: "予約完了のお知らせ"
+                        fromName: "病院予約システム",
+                        subject: "予約完了のお知らせ"
+                    }
                 },
                 reservationTypes: [
                     {
                         id: 1,
                         name: "健康診断",
                         interval: 15,
+                        startTime: "09:00",
+                        endTime: "17:00",
                         capacity: 10,
-                        dateRange: {
-                            start: "2025-01-01",
-                            end: "2025-12-31"
-                        },
-                        holidays: {
-                            weekdays: [],
-                            specificDates: []
-                        },
+                        startDate: "2025-01-01",
+                        endDate: "2025-12-31",
+                        closedDays: ["土", "日"],
                         weeklyHours: {
-                            monday: {start: "09:00", end: "17:00"},
-                            tuesday: {start: "09:00", end: "17:00"},
-                            wednesday: {start: "09:00", end: "17:00"},
-                            thursday: {start: "09:00", end: "17:00"},
-                            friday: {start: "09:00", end: "17:00"},
-                            saturday: {start: "09:00", end: "12:00"},
-                            sunday: {start: "", end: ""}
+                            月: {start: "09:00", end: "17:00"},
+                            火: {start: "09:00", end: "17:00"},
+                            水: {start: "09:00", end: "17:00"},
+                            木: {start: "09:00", end: "17:00"},
+                            金: {start: "09:00", end: "17:00"},
+                            土: {start: "", end: ""},
+                            日: {start: "", end: ""}
                         }
                     },
                     {
                         id: 2,
                         name: "予防接種",
                         interval: 15,
+                        startTime: "10:00",
+                        endTime: "16:00",
                         capacity: 8,
-                        dateRange: {
-                            start: "2025-01-01",
-                            end: "2025-12-31"
-                        },
-                        holidays: {
-                            weekdays: [0, 6],
-                            specificDates: []
-                        },
+                        startDate: "2025-01-01",
+                        endDate: "2025-12-31",
+                        closedDays: ["日"],
                         weeklyHours: {
-                            monday: {start: "09:00", end: "16:00"},
-                            tuesday: {start: "09:00", end: "16:00"},
-                            wednesday: {start: "09:00", end: "16:00"},
-                            thursday: {start: "09:00", end: "16:00"},
-                            friday: {start: "09:00", end: "16:00"},
-                            saturday: {start: "", end: ""},
-                            sunday: {start: "", end: ""}
+                            月: {start: "10:00", end: "16:00"},
+                            火: {start: "10:00", end: "16:00"},
+                            水: {start: "10:00", end: "16:00"},
+                            木: {start: "10:00", end: "16:00"},
+                            金: {start: "10:00", end: "16:00"},
+                            土: {start: "10:00", end: "15:00"},
+                            日: {start: "", end: ""}
                         }
                     }
                 ],
-                reservations: []
+                reservations: [
+                    {
+                        id: 1,
+                        type: "健康診断",
+                        date: "2025-08-01",
+                        time: "09:00",
+                        name: "田中太郎",
+                        email: "tanaka@example.com",
+                        phone: "090-1234-5678",
+                        notes: "血液検査希望",
+                        created: "2025-07-29T11:00:00Z"
+                    },
+                    {
+                        id: 2,
+                        type: "予防接種",
+                        date: "2025-08-02",
+                        time: "10:00",
+                        name: "佐藤花子",
+                        email: "sato@example.com",
+                        phone: "080-9876-5432",
+                        notes: "インフルエンザワクチン",
+                        created: "2025-07-29T11:00:00Z"
+                    }
+                ]
             };
             localStorage.setItem('hospitalReservationData', JSON.stringify(defaultData));
         }
@@ -142,7 +159,7 @@ class HospitalReservationSystem {
             });
         }
 
-        // Admin forms - will be initialized when admin interface loads
+        // Admin forms
         this.initializeAdminEventListeners();
 
         // Tab navigation
@@ -256,7 +273,7 @@ class HospitalReservationSystem {
         const testConnectionBtn = document.getElementById('testConnection');
         if (testConnectionBtn) {
             testConnectionBtn.addEventListener('click', () => {
-                this.testEmailConnection();
+                this.testBrevoConnection();
             });
         }
 
@@ -290,14 +307,20 @@ class HospitalReservationSystem {
         const select = document.getElementById('reservationType');
         if (!select) return;
         
+        console.log('Loading reservation types:', data.reservationTypes); // Debug log
+        
         select.innerHTML = '<option value="">予約種類を選択</option>';
         
-        data.reservationTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type.id;
-            option.textContent = type.name;
-            select.appendChild(option);
-        });
+        if (data.reservationTypes && data.reservationTypes.length > 0) {
+            data.reservationTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.id;
+                option.textContent = type.name;
+                select.appendChild(option);
+            });
+        } else {
+            console.error('No reservation types found in data');
+        }
     }
 
     // Handle reservation type change
@@ -325,12 +348,12 @@ class HospitalReservationSystem {
         const dateInput = document.getElementById('reservationDate');
         
         if (type && dateInput) {
-            dateInput.min = type.dateRange.start;
-            dateInput.max = type.dateRange.end;
+            dateInput.min = type.startDate;
+            dateInput.max = type.endDate;
             
             // Set minimum date to today if start date is in the past
             const today = new Date().toISOString().split('T')[0];
-            if (type.dateRange.start < today) {
+            if (type.startDate < today) {
                 dateInput.min = today;
             }
         }
@@ -359,7 +382,7 @@ class HospitalReservationSystem {
         const type = data.reservationTypes.find(t => t.id == typeId);
         const selectedDate = new Date(date);
         const dayOfWeek = selectedDate.getDay();
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
         const dayName = dayNames[dayOfWeek];
         
         const container = document.getElementById('timeSlots');
@@ -367,16 +390,15 @@ class HospitalReservationSystem {
         
         container.innerHTML = '';
 
-        // Check if the day is a holiday
-        if (type.holidays.weekdays.includes(dayOfWeek) || 
-            type.holidays.specificDates.includes(date)) {
+        // Check if the day is closed
+        if (type.closedDays.includes(dayName)) {
             container.innerHTML = '<p class="text-muted">この日は休診日です。</p>';
             return;
         }
 
         // Get operating hours for the day
         const dayHours = type.weeklyHours[dayName];
-        if (!dayHours.start || !dayHours.end) {
+        if (!dayHours || !dayHours.start || !dayHours.end) {
             container.innerHTML = '<p class="text-muted">この日は休診日です。</p>';
             return;
         }
@@ -387,7 +409,7 @@ class HospitalReservationSystem {
         const interval = type.interval;
         
         const existingReservations = data.reservations.filter(r => 
-            r.type == typeId && r.date === date
+            r.type == type.name && r.date === date
         );
 
         for (let time = startTime; time < endTime; time += interval) {
@@ -441,7 +463,7 @@ class HospitalReservationSystem {
         const name = document.getElementById('patientName').value;
         const email = document.getElementById('patientEmail').value;
         const phone = document.getElementById('patientPhone').value;
-        const message = document.getElementById('patientMessage').value;
+        const notes = document.getElementById('patientMessage').value;
 
         // Validate required fields
         if (!typeId || !date || !time || !name || !email || !phone) {
@@ -460,17 +482,20 @@ class HospitalReservationSystem {
             return;
         }
 
+        // Get reservation type name
+        const type = data.reservationTypes.find(t => t.id == typeId);
+        
         // Create reservation
         const reservation = {
             id: Date.now(),
-            type: parseInt(typeId),
+            type: type.name,
             date: date,
             time: time,
             name: name,
             email: email,  
             phone: phone,
-            message: message,
-            createdAt: new Date().toISOString()
+            notes: notes,
+            created: new Date().toISOString()
         };
 
         // Save reservation
@@ -478,10 +503,10 @@ class HospitalReservationSystem {
         this.saveData(data);
 
         // Show confirmation
-        this.showBookingConfirmation(reservation);
+        this.showBookingConfirmation(reservation, type);
 
-        // Send confirmation email (simulated)
-        this.sendConfirmationEmail(reservation);
+        // Send confirmation email
+        this.sendConfirmationEmail(reservation, type);
 
         // Reset form
         this.resetBookingForm();
@@ -504,10 +529,7 @@ class HospitalReservationSystem {
     }
 
     // Show booking confirmation
-    showBookingConfirmation(reservation) {
-        const data = this.getData();
-        const type = data.reservationTypes.find(t => t.id === reservation.type);
-        
+    showBookingConfirmation(reservation, type) {
         const details = `
             <div class="alert alert-success">
                 <h5><i class="bi bi-check-circle me-2"></i>予約が完了しました</h5>
@@ -517,7 +539,7 @@ class HospitalReservationSystem {
                 <p><strong>お名前:</strong> ${reservation.name}</p>
                 <p><strong>メールアドレス:</strong> ${reservation.email}</p>
                 <p><strong>電話番号:</strong> ${reservation.phone}</p>
-                ${reservation.message ? `<p><strong>ご要望:</strong> ${reservation.message}</p>` : ''}
+                ${reservation.notes ? `<p><strong>ご要望:</strong> ${reservation.notes}</p>` : ''}
                 <hr>
                 <p class="mb-0">確認メールを送信いたします。</p>
             </div>
@@ -531,29 +553,63 @@ class HospitalReservationSystem {
         }
     }
 
-    // Simulate email sending
-    sendConfirmationEmail(reservation) {
+    // Send confirmation email via Brevo
+    async sendConfirmationEmail(reservation, type) {
         const data = this.getData();
-        const type = data.reservationTypes.find(t => t.id === reservation.type);
         
-        // This would normally send an actual email via SendGrid
-        console.log('Confirmation email sent to:', reservation.email);
-        console.log('Email content:', this.generateEmailContent(reservation, type, data.settings));
-        
-        // Show success message
-        setTimeout(() => {
-            this.showAlert('確認メールを送信しました。', 'success');
-        }, 1000);
+        if (!data.settings.brevoApiKey || !data.settings.emailConfig.fromEmail) {
+            console.log('Brevo API not configured, skipping email');
+            this.showAlert('予約は完了しましたが、メール設定が未完了のため確認メールを送信できませんでした。', 'warning');
+            return;
+        }
+
+        try {
+            const emailContent = this.generateEmailContent(reservation, type, data.settings);
+            
+            const emailData = {
+                sender: {
+                    name: data.settings.emailConfig.fromName,
+                    email: data.settings.emailConfig.fromEmail
+                },
+                to: [{
+                    email: reservation.email,
+                    name: reservation.name
+                }],
+                subject: data.settings.emailConfig.subject,
+                textContent: emailContent
+            };
+
+            // Send email via Brevo API
+            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'api-key': data.settings.brevoApiKey
+                },
+                body: JSON.stringify(emailData)
+            });
+
+            if (response.ok) {
+                this.showAlert('確認メールを送信しました。', 'success');
+            } else {
+                throw new Error('Email sending failed');
+            }
+        } catch (error) {
+            console.error('Email sending error:', error);
+            this.showAlert('予約は完了しましたが、確認メールの送信に失敗しました。', 'warning');
+        }
     }
 
     // Generate email content
     generateEmailContent(reservation, type, settings) {
         let template = settings.emailTemplate;
-        template = template.replace('{name}', reservation.name);
-        template = template.replace('{date}', reservation.date);
-        template = template.replace('{time}', reservation.time);
-        template = template.replace('{type}', type.name);
-        template = template.replace('{message}', reservation.message || '');
+        template = template.replace(/{{name}}/g, reservation.name);
+        template = template.replace(/{{date}}/g, reservation.date);
+        template = template.replace(/{{time}}/g, reservation.time);
+        template = template.replace(/{{type}}/g, type.name);
+        template = template.replace(/{{phone}}/g, reservation.phone);
+        template = template.replace(/{{notes}}/g, reservation.notes || 'なし');
         return template;
     }
 
@@ -641,7 +697,7 @@ class HospitalReservationSystem {
     loadRecentReservations() {
         const data = this.getData();
         const recent = data.reservations
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .sort((a, b) => new Date(b.created) - new Date(a.created))
             .slice(0, 5);
 
         const container = document.getElementById('recentReservations');
@@ -656,12 +712,11 @@ class HospitalReservationSystem {
         html += '<thead><tr><th>予約日時</th><th>種類</th><th>患者名</th><th>作成日時</th></tr></thead><tbody>';
         
         recent.forEach(reservation => {
-            const type = data.reservationTypes.find(t => t.id === reservation.type);
-            const createdAt = new Date(reservation.createdAt).toLocaleString('ja-JP');
+            const createdAt = new Date(reservation.created).toLocaleString('ja-JP');
             html += `
                 <tr>
                     <td>${reservation.date} ${reservation.time}</td>
-                    <td>${type ? type.name : '不明'}</td>
+                    <td>${reservation.type}</td>
                     <td>${reservation.name}</td>
                     <td>${createdAt}</td>
                 </tr>
@@ -699,7 +754,9 @@ class HospitalReservationSystem {
         const container = document.getElementById('reservationTypesList');
         if (!container) return;
         
-        if (data.reservationTypes.length === 0) {
+        console.log('Loading reservation types admin:', data.reservationTypes); // Debug log
+        
+        if (!data.reservationTypes || data.reservationTypes.length === 0) {
             container.innerHTML = '<p class="text-muted">予約種類が登録されていません。</p>';
             return;
         }
@@ -739,7 +796,7 @@ class HospitalReservationSystem {
                                 <i class="bi bi-calendar-range type-info-icon"></i>
                                 <div>
                                     <small>予約期間</small><br>
-                                    <strong>${type.dateRange.start} ~ ${type.dateRange.end}</strong>
+                                    <strong>${type.startDate} ~ ${type.endDate}</strong>
                                 </div>
                             </div>
                         </div>
@@ -758,13 +815,13 @@ class HospitalReservationSystem {
         if (!container) return;
         
         const days = [
-            {key: 'monday', name: '月曜日'},
-            {key: 'tuesday', name: '火曜日'},
-            {key: 'wednesday', name: '水曜日'},
-            {key: 'thursday', name: '木曜日'},  
-            {key: 'friday', name: '金曜日'},
-            {key: 'saturday', name: '土曜日'},
-            {key: 'sunday', name: '日曜日'}
+            {key: '月', name: '月曜日'},
+            {key: '火', name: '火曜日'},
+            {key: '水', name: '水曜日'},
+            {key: '木', name: '木曜日'},  
+            {key: '金', name: '金曜日'},
+            {key: '土', name: '土曜日'},
+            {key: '日', name: '日曜日'}
         ];
 
         let html = '';
@@ -780,9 +837,6 @@ class HospitalReservationSystem {
         
         container.innerHTML = html;
     }
-
-    // Other methods remain largely the same but with null checks added...
-    // For brevity, I'll include key methods and add null checks throughout
 
     // Edit reservation type
     editReservationType(typeId) {
@@ -802,8 +856,8 @@ class HospitalReservationSystem {
             if (typeNameEl) typeNameEl.value = type.name;
             if (typeIntervalEl) typeIntervalEl.value = type.interval;
             if (typeCapacityEl) typeCapacityEl.value = type.capacity;
-            if (typeStartDateEl) typeStartDateEl.value = type.dateRange.start;
-            if (typeEndDateEl) typeEndDateEl.value = type.dateRange.end;
+            if (typeStartDateEl) typeStartDateEl.value = type.startDate;
+            if (typeEndDateEl) typeEndDateEl.value = type.endDate;
             
             // Fill weekly hours
             Object.keys(type.weeklyHours).forEach(day => {
@@ -822,8 +876,9 @@ class HospitalReservationSystem {
     deleteReservationType(typeId) {
         if (confirm('この予約種類を削除してもよろしいですか？関連する予約もすべて削除されます。')) {
             const data = this.getData();
+            const type = data.reservationTypes.find(t => t.id === typeId);
             data.reservationTypes = data.reservationTypes.filter(t => t.id !== typeId);
-            data.reservations = data.reservations.filter(r => r.type !== typeId);
+            data.reservations = data.reservations.filter(r => r.type !== type.name);
             this.saveData(data);
             this.loadReservationTypesAdmin();
             this.loadReservationTypes(); // Update patient dropdown
@@ -854,26 +909,29 @@ class HospitalReservationSystem {
             name: typeNameEl.value,
             interval: parseInt(typeIntervalEl.value),
             capacity: parseInt(typeCapacityEl.value),
-            dateRange: {
-                start: typeStartDateEl.value,
-                end: typeEndDateEl.value
-            },
-            holidays: {
-                weekdays: [],
-                specificDates: []
-            },
+            startDate: typeStartDateEl.value,
+            endDate: typeEndDateEl.value,
+            closedDays: [],
             weeklyHours: {}
         };
 
         // Collect weekly hours
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const days = ['月', '火', '水', '木', '金', '土', '日'];
         days.forEach(day => {
             const startEl = document.getElementById(`start_${day}`);
             const endEl = document.getElementById(`end_${day}`);
+            const startTime = startEl ? startEl.value : '';
+            const endTime = endEl ? endEl.value : '';
+            
             typeData.weeklyHours[day] = {
-                start: startEl ? startEl.value : '',
-                end: endEl ? endEl.value : ''
+                start: startTime,
+                end: endTime
             };
+            
+            // Add to closed days if no hours set
+            if (!startTime || !endTime) {
+                typeData.closedDays.push(day);
+            }
         });
 
         if (isEditing) {
@@ -904,7 +962,7 @@ class HospitalReservationSystem {
         }
     }
 
-    // Simplified versions of other methods with null checks...
+    // Load reservation management
     loadReservationManagement() {
         this.filterReservations('all');
     }
@@ -952,7 +1010,6 @@ class HospitalReservationSystem {
     }
 
     displayReservations(reservations) {
-        const data = this.getData();
         const container = document.getElementById('reservationsList');
         if (!container) return;
         
@@ -984,17 +1041,16 @@ class HospitalReservationSystem {
         `;
         
         reservations.forEach(reservation => {
-            const type = data.reservationTypes.find(t => t.id === reservation.type);
             html += `
                 <tr>
                     <td>${reservation.date}<br><small>${reservation.time}</small></td>
-                    <td><span class="badge badge-primary">${type ? type.name : '不明'}</span></td>
+                    <td><span class="badge badge-primary">${reservation.type}</span></td>
                     <td>${reservation.name}</td>
                     <td>
                         <small>${reservation.email}</small><br>
                         <small>${reservation.phone}</small>
                     </td>
-                    <td>${reservation.message ? `<small>${reservation.message}</small>` : '-'}</td>
+                    <td>${reservation.notes ? `<small>${reservation.notes}</small>` : '-'}</td>
                     <td>
                         <button class="btn btn--outline btn--sm me-1" 
                                 onclick="hospitalSystem.editReservation(${reservation.id})">
@@ -1026,33 +1082,32 @@ class HospitalReservationSystem {
     // Load email settings
     loadEmailSettings() {
         const data = this.getData();
-        const emailApiKeyEl = document.getElementById('emailApiKey');
+        const brevoApiKeyEl = document.getElementById('brevoApiKey');
         const emailFromEmailEl = document.getElementById('emailFromEmail');
         const emailFromNameEl = document.getElementById('emailFromName');
         const emailSubjectEl = document.getElementById('emailSubject');
         const emailTemplateEl = document.getElementById('emailTemplate');
         
-        if (emailApiKeyEl) emailApiKeyEl.value = data.settings.emailConfig.apiKey;
-        if (emailFromEmailEl) emailFromEmailEl.value = data.settings.emailConfig.fromEmail;
-        if (emailFromNameEl) emailFromNameEl.value = data.settings.emailConfig.fromName;
-        if (emailSubjectEl) emailSubjectEl.value = data.settings.emailSubject;
-        if (emailTemplateEl) emailTemplateEl.value = data.settings.emailTemplate;
+        if (brevoApiKeyEl) brevoApiKeyEl.value = data.settings.brevoApiKey || '';
+        if (emailFromEmailEl) emailFromEmailEl.value = data.settings.emailConfig.fromEmail || '';
+        if (emailFromNameEl) emailFromNameEl.value = data.settings.emailConfig.fromName || '';
+        if (emailSubjectEl) emailSubjectEl.value = data.settings.emailConfig.subject || '';
+        if (emailTemplateEl) emailTemplateEl.value = data.settings.emailTemplate || '';
     }
 
     // Handle email config save
     handleEmailConfigSave() {
         const data = this.getData();
-        const emailApiKeyEl = document.getElementById('emailApiKey');
+        const brevoApiKeyEl = document.getElementById('brevoApiKey');
         const emailFromEmailEl = document.getElementById('emailFromEmail');
         const emailFromNameEl = document.getElementById('emailFromName');
         
-        data.settings.emailConfig = {
-            apiKey: emailApiKeyEl ? emailApiKeyEl.value : '',
-            fromEmail: emailFromEmailEl ? emailFromEmailEl.value : '',
-            fromName: emailFromNameEl ? emailFromNameEl.value : ''
-        };
+        data.settings.brevoApiKey = brevoApiKeyEl ? brevoApiKeyEl.value : '';
+        data.settings.emailConfig.fromEmail = emailFromEmailEl ? emailFromEmailEl.value : '';
+        data.settings.emailConfig.fromName = emailFromNameEl ? emailFromNameEl.value : '';
+        
         this.saveData(data);
-        this.showAlert('メール設定を保存しました。', 'success');
+        this.showAlert('Brevo設定を保存しました。', 'success');
     }
 
     // Handle email template save
@@ -1061,40 +1116,89 @@ class HospitalReservationSystem {
         const emailSubjectEl = document.getElementById('emailSubject');
         const emailTemplateEl = document.getElementById('emailTemplate');
         
-        data.settings.emailSubject = emailSubjectEl ? emailSubjectEl.value : '';
+        data.settings.emailConfig.subject = emailSubjectEl ? emailSubjectEl.value : '';
         data.settings.emailTemplate = emailTemplateEl ? emailTemplateEl.value : '';
+        
         this.saveData(data);
         this.showAlert('メールテンプレートを保存しました。', 'success');
     }
 
-    // Test email connection
-    testEmailConnection() {
-        const emailApiKeyEl = document.getElementById('emailApiKey');
-        const apiKey = emailApiKeyEl ? emailApiKeyEl.value : '';
+    // Test Brevo connection
+    async testBrevoConnection() {
+        const brevoApiKeyEl = document.getElementById('brevoApiKey');
+        const apiKey = brevoApiKeyEl ? brevoApiKeyEl.value : '';
         if (!apiKey) {
             this.showAlert('APIキーを入力してください。', 'warning');
             return;
         }
         
-        // Simulate connection test
-        setTimeout(() => {
-            this.showAlert('SendGrid接続テストが完了しました。（シミュレーション）', 'info');
-        }, 1000);
+        try {
+            const response = await fetch('https://api.brevo.com/v3/account', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'api-key': apiKey
+                }
+            });
+
+            if (response.ok) {
+                this.showAlert('Brevo接続テストが成功しました。', 'success');
+            } else {
+                throw new Error('Connection failed');
+            }
+        } catch (error) {
+            this.showAlert('Brevo接続テストが失敗しました。APIキーを確認してください。', 'danger');
+        }
     }
 
     // Send test email
-    sendTestEmail() {
+    async sendTestEmail() {
+        const data = this.getData();
         const emailFromEmailEl = document.getElementById('emailFromEmail');
         const email = emailFromEmailEl ? emailFromEmailEl.value : '';
+        
         if (!email) {
             this.showAlert('送信者メールアドレスを入力してください。', 'warning');
             return;
         }
         
-        // Simulate test email
-        setTimeout(() => {
-            this.showAlert(`テストメールを ${email} に送信しました。（シミュレーション）`, 'info');
-        }, 1000);
+        if (!data.settings.brevoApiKey) {
+            this.showAlert('Brevo APIキーを設定してください。', 'warning');
+            return;
+        }
+
+        try {
+            const emailData = {
+                sender: {
+                    name: data.settings.emailConfig.fromName,
+                    email: data.settings.emailConfig.fromEmail
+                },
+                to: [{
+                    email: email,
+                    name: 'テスト'
+                }],
+                subject: 'テストメール - 病院予約システム',
+                textContent: 'これはBrevo連携のテストメールです。\n\n病院予約システム'
+            };
+
+            const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'api-key': data.settings.brevoApiKey
+                },
+                body: JSON.stringify(emailData)
+            });
+
+            if (response.ok) {
+                this.showAlert(`テストメールを ${email} に送信しました。`, 'success');
+            } else {
+                throw new Error('Email sending failed');
+            }
+        } catch (error) {
+            this.showAlert('テストメールの送信に失敗しました。', 'danger');
+        }
     }
 
     // Load system settings
@@ -1169,7 +1273,7 @@ class HospitalReservationSystem {
         this.showAlert('ウェルカムメッセージを更新しました。', 'success');
     }
 
-    // Data management methods with error handling
+    // Data management methods
     exportData() {
         try {
             const data = this.getData();
@@ -1282,14 +1386,13 @@ class HospitalReservationSystem {
         });
         
         sortedReservations.forEach(reservation => {
-            const type = data.reservationTypes.find(t => t.id === reservation.type);
             html += `
                 <tr>
                     <td>${reservation.date} ${reservation.time}</td>
-                    <td>${type ? type.name : '不明'}</td>
+                    <td>${reservation.type}</td>
                     <td>${reservation.name}</td>
                     <td>${reservation.email}<br>${reservation.phone}</td>
-                    <td>${reservation.message || '-'}</td>
+                    <td>${reservation.notes || '-'}</td>
                 </tr>
             `;
         });
@@ -1360,8 +1463,7 @@ class HospitalReservationSystem {
                         ''}
                     <div class="calendar-reservations">
                         ${dayReservations.slice(0, 2).map(r => {
-                            const type = data.reservationTypes.find(t => t.id === r.type);
-                            return `<div style="font-size: 10px;">${r.time} ${type ? type.name : ''}</div>`;
+                            return `<div style="font-size: 10px;">${r.time} ${r.type}</div>`;
                         }).join('')}
                         ${dayReservations.length > 2 ? `<div style="font-size: 10px;">+${dayReservations.length - 2}</div>` : ''}
                     </div>
@@ -1408,6 +1510,11 @@ class HospitalReservationSystem {
                 alertDiv.parentNode.removeChild(alertDiv);
             }
         }, 5000);
+    }
+
+    // Placeholder for reservation editing (not implemented in this version)
+    editReservation(reservationId) {
+        this.showAlert('予約編集機能は今後実装予定です。', 'info');
     }
 }
 
